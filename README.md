@@ -1,6 +1,6 @@
+
+
 # NightGuide
-
-
 
 ## Getting started
 
