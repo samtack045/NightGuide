@@ -12,7 +12,7 @@
        android:id="@+id/contactTitle"
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
-       android:text="Contacts"
+       android:text="Contact List"
        android:textSize="50sp"
        android:layout_marginTop="5dp"
        android:layout_marginStart="90dp"
