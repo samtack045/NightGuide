@@ -2,6 +2,7 @@ package com.example.ng
 
 import android.content.Intent
 import android.graphics.Color
+import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.Gravity
@@ -32,11 +33,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         mapFragment.getMapAsync(this)
 
 
-
-
-
         binding.contactsPageButton?.setOnClickListener {
             val intent = Intent(this, MainActivity::class.java)
+            startActivity(intent)
+        }
+
+        binding.butSOS.setOnClickListener {
+            val intent = Intent(Intent.ACTION_CALL)
+            intent.data = Uri.parse("tel:" + Uri.encode("123"))
             startActivity(intent)
         }
 

@@ -3,4 +3,5 @@
     <string name="hello_blank_fragment">NightGuide</string>
     <string name="title_activity_maps">MapsActivity</string>
     <string name="title_activity_maps2">MapsActivity2</string>
+    <string name="call_a_friend">Call a friend</string>
 </resources>

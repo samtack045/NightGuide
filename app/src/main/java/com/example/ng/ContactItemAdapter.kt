@@ -29,23 +29,6 @@ class ContactItemAdapter(
 
     override fun onBindViewHolder(holder: ContactItemViewHolder, position: Int) {
         holder.bindContactItem(contactItems[position])
-
-//        holder.binding.deleteContact.setOnClickListener {
-//            val contactItem = contactItems[position]
-//
-//
-//            // Delete the contact item from the list.
-//            contactItems.remove(contactItem)
-//            //NewContactSheet(null).deleteContact(contactItem)
-//            //contactViewModel.deleteContactItem(contactItem)
-//
-//            // Notify the adapter that the list has changed.
-//            this.notifyDataSetChanged()
-//
-//
-//            // Show a toast message to confirm that the contact was deleted.
-//            //Toast.makeText(context, "Contact deleted", Toast.LENGTH_SHORT).show()
-//        }
     }
 
 

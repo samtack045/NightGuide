@@ -34,9 +34,9 @@
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
        android:orientation="horizontal"
-       android:paddingStart="20dp"
+       android:paddingStart="10dp"
        android:paddingTop="20dp"
-       android:paddingEnd="20dp"
+       android:paddingEnd="10dp"
        android:paddingBottom="20dp"
        app:layout_constraintBottom_toBottomOf="parent">
 
@@ -47,25 +47,38 @@
           android:backgroundTint="?attr/colorPrimary"
           android:textColor="?colorOnPrimary"
           app:icon="@drawable/baseline_map_24"
-          android:layout_marginStart="15dp"
-          android:layout_marginBottom="15dp"
-          android:layout_marginEnd="10dp"
+          app:layout_constraintTop_toTopOf="parent"
+          app:layout_constraintBottom_toBottomOf="parent"
+          app:layout_constraintEnd_toStartOf="@id/callFriend_button"
           app:iconTint="?colorOnPrimary" />
+
+      <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+          android:id="@+id/callFriend_button"
+          android:text = "@string/call_a_friend"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:backgroundTint="?attr/colorPrimary"
+          android:textColor="?colorOnPrimary"
+          app:iconTint="?colorOnPrimary"
+          app:layout_constraintTop_toTopOf="parent"
+          app:layout_constraintBottom_toBottomOf="parent"
+          android:layout_marginHorizontal="10dp"
+          />
 
 
       <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
           android:id="@+id/newContactButton"
           android:layout_width="wrap_content"
           android:layout_height="wrap_content"
-          android:layout_marginStart="73dp"
-          android:layout_marginBottom="30dp"
-          android:layout_marginEnd="10dp"
-
           android:backgroundTint="?attr/colorPrimary"
-          android:text="New Contact"
+          android:text="New"
           android:textColor="?colorOnPrimary"
           app:icon="@drawable/baseline_add_24"
-          app:iconTint="?colorOnPrimary" />
+          app:iconTint="?colorOnPrimary"
+          app:layout_constraintTop_toTopOf="parent"
+          app:layout_constraintBottom_toBottomOf="parent"
+          app:layout_constraintEnd_toEndOf="parent"
+          app:layout_constraintStart_toEndOf="@id/callFriend_button"/>
 
 
    </LinearLayout>

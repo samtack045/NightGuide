@@ -12,14 +12,15 @@
         android:id="@+id/butSOS"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:backgroundTint="?attr/colorPrimary"
+        android:backgroundTint="#FF0000"
         android:icon="@android:drawable/ic_dialog_alert"
-        android:iconTint="?colorOnPrimary"
+        android:iconTint="@color/red"
         android:padding="5dp"
         android:text="SOS"
         android:textColor="?colorOnPrimary"
         android:layout_gravity="top|right"
         android:layout_margin="16dp"/>
+
 
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/contacts_page_button"
