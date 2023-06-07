@@ -2,7 +2,6 @@ package com.example.ng
 
 import android.os.Bundle
 import android.text.Editable
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -20,27 +19,44 @@ class NewContactSheet(var contactItem: ContactItem?) : BottomSheetDialogFragment
         super.onViewCreated(view, savedInstanceState)
         val activity = requireActivity()
 
+
+
+
         if (contactItem != null) {
             binding.contactTitle.text = "Edit contact"
             val editable = Editable.Factory.getInstance()
             binding.name.text = editable.newEditable(contactItem!!.name)
             binding.phoneNum.text = editable.newEditable(contactItem!!.num)
-        }else{
+        } else {
             binding.contactTitle.text = "New Contact"
         }
 
         contactViewModel = ViewModelProvider(activity)[ContactViewModel::class.java]
-        binding.saveButton.setOnClickListener{
+        binding.saveButton.setOnClickListener {
             saveAction()
         }
+        binding.deleteButton.setOnClickListener {
+            deleteAction()
+        }
+
+
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+    ): View? {
         // Inflate the layout for this fragment
         binding = FragmentNewContactSheetBinding.inflate(inflater, container, false)
         return binding.root
     }
+
+    fun deleteAction() {
+        if (contactItem != null) {
+            contactViewModel.deleteContactItem(contactItem!!)
+            dismiss()
+        }
+    }
+
 
     private fun saveAction() {
 
@@ -50,14 +66,23 @@ class NewContactSheet(var contactItem: ContactItem?) : BottomSheetDialogFragment
         if (contactItem == null) {
             val newContact = ContactItem(name, num)
             contactViewModel.addContactItem(newContact)
-        } else{
+
+
+        } else {
             contactItem!!.name = name
             contactItem!!.num = num
             contactViewModel.updateContactItem(contactItem!!)
+
         }
+
         binding.name.setText("")
         binding.phoneNum.setText("")
-        dismiss()
 
+        dismiss()
     }
+
+
+
+
+
 }

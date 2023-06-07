@@ -1,9 +1,9 @@
 package com.example.ng
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.activity.viewModels
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.ng.databinding.ActivityMainBinding
 
@@ -18,12 +18,19 @@ class MainActivity : AppCompatActivity(), ContactItemClickListener {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
 
+
         setContentView(binding.root)
+
+
         binding.newContactButton.setOnClickListener{
             NewContactSheet(null).show(supportFragmentManager, "newContactTag")
         }
 
-        this.setTitle("HELLOOO")
+        binding.mapsButton.setOnClickListener{
+            val intent = Intent(this, MapsActivity::class.java)
+            startActivity(intent)
+        }
+
 
         setRecyclerView()
     }
@@ -34,7 +41,7 @@ class MainActivity : AppCompatActivity(), ContactItemClickListener {
         contactViewModel.contactItems.observe(this){
             binding.contactListRecyclerView.apply {
                 layoutManager = LinearLayoutManager(applicationContext)
-                adapter = ContactItemAdapter(it, mainActivity)
+                adapter = ContactItemAdapter(it as MutableList<ContactItem>, mainActivity)
             }
         }
     }
@@ -42,5 +49,8 @@ class MainActivity : AppCompatActivity(), ContactItemClickListener {
     override fun editContactItem(contactItem: ContactItem) {
         NewContactSheet(contactItem).show(supportFragmentManager, "newContactTag")
     }
+
+
+
 
 }

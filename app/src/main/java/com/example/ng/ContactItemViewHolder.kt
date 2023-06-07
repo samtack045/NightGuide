@@ -7,7 +7,7 @@ import com.example.ng.databinding.FragmentNewContactSheetBinding
 
 class ContactItemViewHolder(
     private val context: Context,
-    private val binding: ContactItemCellBinding,
+    val binding: ContactItemCellBinding,
     private val clickListener: ContactItemClickListener
 ): RecyclerView.ViewHolder(binding.root) {
 
@@ -19,6 +19,9 @@ class ContactItemViewHolder(
         }
 
 
-
     }
+
+
+
+
 }

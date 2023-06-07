@@ -58,4 +58,15 @@
         android:layout_marginHorizontal="20dp"
         android:text="Save"/>
 
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/deleteButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="30dp"
+        android:backgroundTint="@color/red"
+        android:textColor="@color/white"
+        android:text="Delete Contact"/>
+
 </LinearLayout>

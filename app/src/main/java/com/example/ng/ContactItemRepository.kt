@@ -17,4 +17,9 @@ class ContactItemRepository(private val contactItemDao: ContactItemDao) {
         contactItemDao.updateContactItem(contactItem)
     }
 
+    @WorkerThread
+    suspend fun deleteContactItem(contactItem: ContactItem) {
+        contactItemDao.deleteContactItem(contactItem)
+    }
+
 }

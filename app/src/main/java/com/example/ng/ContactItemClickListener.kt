@@ -4,4 +4,6 @@ interface ContactItemClickListener {
 
     fun editContactItem(contactItem: ContactItem)
 
+
+
 }
