@@ -26,7 +26,10 @@ class ContactItemViewHolder(
 
         binding.butCall.setOnClickListener{
             clickListener.call(contactItem)
+        }
 
+        binding.butMsg.setOnClickListener{
+            clickListener.msg(contactItem)
         }
 
 
