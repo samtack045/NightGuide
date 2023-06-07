@@ -62,6 +62,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
         val huxley = LatLng(51.500801, -0.180550)
         mMap.addMarker(MarkerOptions().position(huxley).title("Marker in Sydney"))
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(huxley))
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(huxley, 15f))
     }
 }
