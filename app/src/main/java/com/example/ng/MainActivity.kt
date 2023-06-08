@@ -1,6 +1,7 @@
 package com.example.ng
 
 import android.Manifest
+import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -8,6 +9,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.telephony.PhoneStateListener
+import android.telephony.SmsManager
 import android.telephony.TelephonyManager
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
@@ -68,6 +70,22 @@ class MainActivity : AppCompatActivity(), ContactItemClickListener {
         NewContactSheet(contactItem).show(supportFragmentManager, "newContactTag")
     }
 
+    override fun msg(contactItem: ContactItem) {
+//        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED){
+//            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.SEND_SMS), 101)
+//        }
+        //val smsManager = this.getSystemService(SmsManager::class.java)
+        val sentPI: PendingIntent = PendingIntent.getBroadcast(
+            this,
+            0,
+            Intent("SMS_SENT"),
+            PendingIntent.FLAG_IMMUTABLE
+        )
+
+        NewMessageSheet(contactItem, sentPI).show(supportFragmentManager, "newMessageTag")
+
+    }
+
     override fun call(contactItem: ContactItem) {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED){
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CALL_PHONE), 101)
@@ -85,10 +103,8 @@ class MainActivity : AppCompatActivity(), ContactItemClickListener {
             // Make the call
             val intent = Intent(Intent.ACTION_CALL)
             intent.data = Uri.parse("tel:" + Uri.encode(friends[i].num))
-            startActivity(intent)
-
-            Thread.sleep(15000)
-
+            startActivityForResult(intent, i)
+            Thread.sleep(10000)
 
         }
         }

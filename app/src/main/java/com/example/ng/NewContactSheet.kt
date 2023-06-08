@@ -21,7 +21,6 @@ class NewContactSheet(var contactItem: ContactItem?) : BottomSheetDialogFragment
 
 
 
-
         if (contactItem != null) {
             binding.contactTitle.text = "Edit contact"
             val editable = Editable.Factory.getInstance()
