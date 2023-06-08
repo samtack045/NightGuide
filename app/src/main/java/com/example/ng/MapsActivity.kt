@@ -1,13 +1,16 @@
 package com.example.ng
 
+import android.Manifest
 import android.content.ContentValues.TAG
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.icu.lang.UCharacter.getDirection
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import com.example.ng.databinding.ActivityMapsBinding
 import com.example.ng.directionhelpers.FetchURL
 import com.example.ng.directionhelpers.TaskLoadedCallback
@@ -83,6 +86,24 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
         mMap.addMarker(start)
         mMap.addMarker(destination)
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(startLocation, 15f))
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return
+        }
+        mMap.isMyLocationEnabled = true
     }
 
     private fun getUrl(startLocation: LatLng, destLocation: LatLng): String {
