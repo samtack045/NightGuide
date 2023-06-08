@@ -1,31 +1,52 @@
 package com.example.ng
 
+import android.content.ContentValues.TAG
 import android.content.Intent
-import android.graphics.Color
+import android.icu.lang.UCharacter.getDirection
 import android.net.Uri
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.view.Gravity
-
+import android.util.Log
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import com.example.ng.databinding.ActivityMapsBinding
+import com.example.ng.directionhelpers.FetchURL
+import com.example.ng.directionhelpers.TaskLoadedCallback
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
-import com.example.ng.databinding.ActivityMapsBinding
-import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+import com.google.android.gms.maps.model.Polyline
+import com.google.android.gms.maps.model.PolylineOptions
 
-class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
+
+class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback {
 
     private lateinit var mMap: GoogleMap
     private lateinit var binding: ActivityMapsBinding
+    private lateinit var currentPolyline : Polyline
+    private val startLocation = LatLng(51.500801, -0.180550)
+    private val destLocation = LatLng(51.49151686664713, -0.1939163228939211)
+    private val start : MarkerOptions = MarkerOptions().position(startLocation).title("Huxley")
+    private val destination : MarkerOptions = MarkerOptions().position(destLocation).title("Earls Court")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         binding = ActivityMapsBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        binding.buRoute.setOnClickListener {
+            println(getUrl( startLocation, destLocation))
+            Toast.makeText(this@MapsActivity, getUrl( startLocation, destLocation), Toast.LENGTH_LONG).show()
+//            FetchURL(this@MapsActivity).execute(
+//                getUrl(
+//                    startLocation,
+//                    destLocation,
+//                ), "walking"
+//            )
+        }
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         val mapFragment = supportFragmentManager
@@ -38,13 +59,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             startActivity(intent)
         }
 
-        binding.butSOS.setOnClickListener {
+        binding.buSOS.setOnClickListener {
             val intent = Intent(Intent.ACTION_CALL)
             intent.data = Uri.parse("tel:" + Uri.encode("123"))
             startActivity(intent)
         }
 
-
+        val url = getUrl(startLocation, destLocation)
+        mapFragment.getMapAsync(this)
     }
 
     /**
@@ -58,10 +80,26 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
      */
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
+        mMap.addMarker(start)
+        mMap.addMarker(destination)
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(startLocation, 15f))
+    }
 
+    private fun getUrl(startLocation: LatLng, destLocation: LatLng): String {
+        val key = "AIzaSyAPoL0l_feaQrdNAFClruqteDXqSVpCMig"
+        val str_start : String = "origin=" + startLocation.latitude + "," + startLocation.longitude
+        val str_dest : String = "destination=" + destLocation.latitude + "," + destLocation.longitude
+        val mode : String = "mode=walking"
 
-        val huxley = LatLng(51.500801, -0.180550)
-        mMap.addMarker(MarkerOptions().position(huxley).title("Marker in Huxley"))
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(huxley, 15f))
+        val parameters : String = "$str_start&$str_dest&$mode"
+
+        val output : String = "json"
+
+        val url = "https://maps.googleapis.com/maps/api/directions/$output?$parameters&key=$key"
+        return url
+    }
+    override fun onTaskDone(vararg values: Any?) {
+        if (currentPolyline != null) currentPolyline.remove()
+        currentPolyline = mMap.addPolyline((values[0] as PolylineOptions?)!!)
     }
 }
