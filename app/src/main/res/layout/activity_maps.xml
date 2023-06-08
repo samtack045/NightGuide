@@ -9,7 +9,7 @@
     tools:context=".MainActivity">
 
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
-        android:id="@+id/butSOS"
+        android:id="@+id/buSOS"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:backgroundTint="#FF0000"
@@ -33,6 +33,19 @@
         android:text="Contacts"
         android:textColor="?colorOnPrimary"
         android:layout_gravity="top|left"
+        android:layout_margin="16dp"/>
+
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/buRoute"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:backgroundTint="?attr/colorPrimary"
+        android:icon="@android:drawable/ic_dialog_alert"
+        android:iconTint="?colorOnPrimary"
+        android:padding="5dp"
+        android:text="Route"
+        android:textColor="?colorOnPrimary"
+        android:layout_gravity="bottom|right"
         android:layout_margin="16dp"/>
 
     <fragment
