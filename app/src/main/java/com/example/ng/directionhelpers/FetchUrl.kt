@@ -1,9 +1,13 @@
 package com.example.ng.directionhelpers
-
+import android.app.PendingIntent
 import android.content.Context
-import android.os.AsyncTask
+import android.content.Intent
+import android.telephony.SmsManager
 import android.util.Log
 import com.example.ng.directionhelpers.PointsParser
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStream
@@ -11,25 +15,25 @@ import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
 
-class FetchURL(var mContext: Context) :
-    AsyncTask<String?, Void?, String>() {
-    var directionMode = "driving"
-    override fun doInBackground(vararg strings: String?): String {
-        // For storing data from web service
-        var data = ""
-        directionMode = strings[1].toString()
-        try {
-            // Fetching the data from web service
-            data = strings[0]?.let { downloadUrl(it) }.toString()
-            Log.d("mylog", "Background task data $data")
-        } catch (e: Exception) {
-            Log.d("Background Task", e.toString())
+class FetchURL(var mContext: TaskLoadedCallback) {
+    var directionMode = "walking"
+
+    fun execute(url: String, mode: String) {
+        directionMode = mode
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val data = downloadUrl(url)
+                Log.d("mylog", "Background task data $data")
+                Log.d("testlog","HI")
+                onPostExecute(data)
+            } catch (e: Exception) {
+
+                Log.d("BackgroundTask", e.toString())
+            }
         }
-        return data
     }
 
-    override fun onPostExecute(s: String) {
-        super.onPostExecute(s)
+    private fun onPostExecute(s: String) {
         val parserTask = PointsParser(mContext, directionMode)
         // Invokes the thread for parsing the JSON data
         parserTask.execute(s)
@@ -60,8 +64,8 @@ class FetchURL(var mContext: Context) :
         } catch (e: Exception) {
             Log.d("mylog", "Exception downloading URL: $e")
         } finally {
-            iStream!!.close()
-            urlConnection!!.disconnect()
+            iStream?.close()
+            urlConnection?.disconnect()
         }
         return data
     }

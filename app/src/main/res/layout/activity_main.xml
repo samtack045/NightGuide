@@ -67,17 +67,17 @@
        android:paddingBottom="20dp"
        app:layout_constraintBottom_toBottomOf="parent">
 
-<!--      <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton-->
-<!--          android:id="@+id/maps_button"-->
-<!--          android:layout_width="wrap_content"-->
-<!--          android:layout_height="wrap_content"-->
-<!--          android:backgroundTint="?attr/colorPrimary"-->
-<!--          android:textColor="?colorOnPrimary"-->
-<!--          app:icon="@drawable/baseline_map_24"-->
-<!--          app:layout_constraintTop_toTopOf="parent"-->
-<!--          app:layout_constraintBottom_toBottomOf="parent"-->
-<!--          app:layout_constraintEnd_toStartOf="@id/callFriend_button"-->
-<!--          app:iconTint="?colorOnPrimary" />-->
+      <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+          android:id="@+id/maps_button"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:backgroundTint="?attr/colorPrimary"
+          android:textColor="?colorOnPrimary"
+          app:icon="@drawable/baseline_map_24"
+          app:layout_constraintTop_toTopOf="parent"
+          app:layout_constraintBottom_toBottomOf="parent"
+          app:layout_constraintEnd_toStartOf="@id/callFriend_button"
+          app:iconTint="?colorOnPrimary" />
 
       <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
           android:id="@+id/callFriend_button"

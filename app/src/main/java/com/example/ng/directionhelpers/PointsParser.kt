@@ -10,13 +10,13 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.PolylineOptions
 import org.json.JSONObject
 
-class PointsParser(mContext: Context, directionMode: String) :
+class PointsParser(mContext: TaskLoadedCallback, directionMode: String) :
     AsyncTask<String?, Int?, List<List<HashMap<String, String>>>?>() {
-    var taskCallback: TaskLoadedCallback
-    var directionMode = "driving"
+    private var taskCallback: TaskLoadedCallback
+    var directionMode = "walking"
 
     init {
-        taskCallback = mContext as TaskLoadedCallback
+        this.taskCallback = mContext
         this.directionMode = directionMode
     }
 
@@ -71,12 +71,16 @@ class PointsParser(mContext: Context, directionMode: String) :
             Log.d("mylog", "onPostExecute lineoptions decoded")
         }
 
+
         // Drawing polyline in the Google Map for the i-th route
         if (lineOptions != null) {
+            Log.d("mylog", "end of this1")
             //mMap.addPolyline(lineOptions);
             taskCallback.onTaskDone(lineOptions)
+
         } else {
             Log.d("mylog", "without Polylines drawn")
         }
+        Log.d("mylog", "end of this2")
     }
 }

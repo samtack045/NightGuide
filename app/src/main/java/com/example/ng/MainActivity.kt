@@ -45,10 +45,10 @@ class MainActivity : AppCompatActivity(), ContactItemClickListener {
             NewContactSheet(null).show(supportFragmentManager, "newContactTag")
         }
 
-//        binding.mapsButton.setOnClickListener{
-//            val intent = Intent(this, MapsActivity::class.java)
-//            startActivity(intent)
-//        }
+        binding.mapsButton.setOnClickListener{
+            val intent = Intent(this, MapsActivity::class.java)
+            startActivity(intent)
+        }
 
         binding.callFriendButton.setOnClickListener {
             callAFriend()
