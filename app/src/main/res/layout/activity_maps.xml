@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
+<androidx.constraintlayout.widget.ConstraintLayout
     android:id="@+id/main_content"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -8,17 +8,38 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:id="@+id/layoutTextBox"
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|left"
+        android:layout_margin="16dp"
+        android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/buRoute">
+
+        <EditText
+            android:id="@+id/searchBox"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/white"
+            android:hint="@string/where_do_you_want_to_go"
+            android:textColor="#000000"
+            android:textColorHint="#8C8C8C" />
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/buSOS"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:backgroundTint="#FF0000"
-        android:icon="@android:drawable/ic_dialog_alert"
         android:iconTint="@color/red"
         android:padding="5dp"
         android:text="SOS"
         android:textColor="?colorOnPrimary"
-        android:layout_gravity="top|right"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         android:layout_margin="16dp"/>
 
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
@@ -27,13 +48,12 @@
         android:layout_height="wrap_content"
         android:backgroundTint="?attr/colorPrimary"
         android:icon="@android:drawable/ic_dialog_alert"
+        app:icon="@drawable/ic_action_name"
         android:iconTint="?colorOnPrimary"
         android:padding="5dp"
-        android:text="Centre"
         android:textColor="?colorOnPrimary"
-        android:layout_gravity="top|right"
-        android:layout_marginTop="80dp"/>
-
+        app:layout_constraintTop_toBottomOf="@id/buSOS"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
@@ -46,7 +66,8 @@
         android:padding="5dp"
         android:text="Contacts"
         android:textColor="?colorOnPrimary"
-        android:layout_gravity="top|left"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         android:layout_margin="16dp"/>
 
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
@@ -57,9 +78,10 @@
         android:icon="@android:drawable/ic_dialog_alert"
         android:iconTint="?colorOnPrimary"
         android:padding="5dp"
-        android:text="Route"
+        app:icon="@drawable/ic_route_icon"
         android:textColor="?colorOnPrimary"
-        android:layout_gravity="bottom|right"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         android:layout_margin="16dp"/>
 
     <fragment
@@ -67,28 +89,38 @@
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".MapsActivity"></fragment>
+        android:visibility="visible"
+        tools:context=".MapsActivity"
+        tools:layout_editor_absoluteX="0dp"
+        tools:layout_editor_absoluteY="0dp"></fragment>
 
-    <androidx.appcompat.widget.LinearLayoutCompat
-        android:layout_width="wrap_content"
+    <Button
+        android:id="@+id/buAddFave"
+        android:layout_width="50dp"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@+id/main_content"
-        android:layout_marginTop="80dp">
-    <EditText
-        android:id="@+id/searchBox"
-        android:layout_width="match_parent"
+        android:layout_marginEnd="12dp"
+        android:layout_marginBottom="12dp"
+        app:icon="@drawable/ic_add_location_icon"
+        app:layout_constraintBottom_toTopOf="@+id/layoutTextBox"
+        app:layout_constraintEnd_toStartOf="@+id/buRoute" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        android:hint="@string/where_do_you_want_to_go"
-        android:layout_marginTop="30dp"
-        android:layout_margin="16dp"
-        android:textColorHint="#8C8C8C"
-        android:background="@color/white"
-        android:textColor="#000000" />
+        android:layout_marginBottom="12dp"
+        app:layout_constraintBottom_toTopOf="@+id/layoutTextBox"
+        app:layout_constraintEnd_toStartOf="@+id/buAddFave"
+        app:layout_constraintStart_toStartOf="@+id/map">
 
-    </androidx.appcompat.widget.LinearLayoutCompat>
+        <AutoCompleteTextView
+            android:id="@+id/autoCompleteTextView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="AutoCompleteTextView" />
+    </com.google.android.material.textfield.TextInputLayout>
 
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
 
