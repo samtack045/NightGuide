@@ -46,7 +46,7 @@ class MainActivity : AppCompatActivity(), ContactItemClickListener {
         binding.mapsButton.setOnClickListener{
             val intent = Intent(this, MapsActivity::class.java)
             val nums: List<String> = contactViewModel.contactItems.value
-                //?.filter {it.isEmergencyContact}
+                ?.filter {it.isEmergencyContact}
                 ?.map {it.num}
                 ?: emptyList()
             intent.putStringArrayListExtra("Emergency Contacts", ArrayList(nums))

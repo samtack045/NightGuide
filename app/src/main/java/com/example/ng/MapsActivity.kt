@@ -213,10 +213,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
                     PendingIntent.FLAG_IMMUTABLE
                 )
 
-                val badPoint = LatLng(51.498898, -0.199795)
-                val badRadius = createCircularArea(badPoint, 0.07, 300)
+                val badPoints = listOf(LatLng(51.490701, -0.186242), LatLng(51.493667, -0.188817))
+
+               // val badRadius = createCircularArea(badPoint, 0.07, 300)
                 val url = getUrl(origin, dest)
-                val fetchUrl = FetchURL(this)
+                val fetchUrl = FetchURL(this, badPoints)
 
                 fetchUrl.execute(url, "walking")
             }

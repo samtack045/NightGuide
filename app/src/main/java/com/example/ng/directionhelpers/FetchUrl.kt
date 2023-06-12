@@ -5,6 +5,7 @@ import android.content.Intent
 import android.telephony.SmsManager
 import android.util.Log
 import com.example.ng.directionhelpers.PointsParser
+import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -15,7 +16,7 @@ import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
 
-class FetchURL(var mContext: TaskLoadedCallback) {
+class FetchURL(var mContext: TaskLoadedCallback, val avoid: List<LatLng>) {
     var directionMode = "walking"
 
     fun execute(url: String, mode: String) {
@@ -35,6 +36,7 @@ class FetchURL(var mContext: TaskLoadedCallback) {
 
     private fun onPostExecute(s: String) {
         val parserTask = PointsParser(mContext, directionMode)
+        parserTask.setAvoid(avoid)
         // Invokes the thread for parsing the JSON data
         parserTask.execute(s)
     }
