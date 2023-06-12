@@ -21,6 +21,20 @@
         android:layout_gravity="top|right"
         android:layout_margin="16dp"/>
 
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/buCentre"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:backgroundTint="?attr/colorPrimary"
+        android:icon="@android:drawable/ic_dialog_alert"
+        android:iconTint="?colorOnPrimary"
+        android:padding="5dp"
+        android:text="Centre"
+        android:textColor="?colorOnPrimary"
+        android:layout_gravity="top|right"
+        android:layout_marginTop="80dp"/>
+
+
 
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/contacts_page_button"
@@ -55,4 +69,26 @@
         android:layout_height="match_parent"
         tools:context=".MapsActivity"></fragment>
 
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@+id/main_content"
+        android:layout_marginTop="80dp">
+    <EditText
+        android:id="@+id/searchBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:hint="@string/where_do_you_want_to_go"
+        android:layout_marginTop="30dp"
+        android:layout_margin="16dp"
+        android:textColorHint="#8C8C8C"
+        android:background="@color/white"
+        android:textColor="#000000" />
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
+

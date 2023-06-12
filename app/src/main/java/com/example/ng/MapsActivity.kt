@@ -3,11 +3,10 @@ package com.example.ng
 import com.google.maps.android.PolyUtil
 import android.Manifest
 import android.app.PendingIntent
-import android.content.ContentValues.TAG
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.icu.lang.UCharacter.getDirection
+import android.location.Geocoder
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
@@ -15,6 +14,8 @@ import android.net.Uri
 import android.os.Bundle
 import android.telephony.SmsManager
 import android.util.Log
+import android.view.KeyEvent
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -30,6 +31,7 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.Polyline
 import com.google.android.gms.maps.model.PolylineOptions
+import java.util.Locale
 
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback, LocationListener {
@@ -42,6 +44,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
     private val start : MarkerOptions = MarkerOptions().position(startLocation).title("Huxley")
     private val destination : MarkerOptions = MarkerOptions().position(destLocation).title("Earls Court")
     private val markerPoints: ArrayList<LatLng> = ArrayList()
+    private var mapJustLoaded = true
 
     private lateinit var mapFragment: SupportMapFragment
 
@@ -51,12 +54,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
         binding = ActivityMapsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.buRoute.setOnClickListener {
-            println(getUrl( startLocation, destLocation))
-            Toast.makeText(this@MapsActivity, getUrl( startLocation, destLocation), Toast.LENGTH_LONG).show()
-
-        }
-
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
@@ -65,7 +62,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
 
 
 
-        binding.contactsPageButton?.setOnClickListener {
+        binding.contactsPageButton.setOnClickListener {
             val intent = Intent(this, MainActivity::class.java)
             startActivity(intent)
         }
@@ -76,7 +73,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
             startActivity(intent)
         }
 
-        val url = getUrl(startLocation, destLocation)
+
+
+
+
+
         mapFragment.getMapAsync(this)
     }
 
@@ -92,94 +93,23 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
         val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        if (ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return
-        }
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 30000, 0f, this)
-
-
-
-
-
-        mMap.setOnMapClickListener { latLng ->
-            if (markerPoints.size > 0) {
-                markerPoints.clear()
-                mMap.clear()
-            }
-
-            // Adding new item to the ArrayList
-            markerPoints.add(latLng)
-
-            // Creating MarkerOptions
-            val options = MarkerOptions()
-
-            // Setting the position of the marker
-            options.position(latLng)
-
-            if (markerPoints.size == 1) {
-                options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
-            }
-
-            // Add new marker to the map
-            mMap.addMarker(options)
-            var lat : Double = 0.0
-            var long: Double = 0.0
-            var origin: LatLng
-            // Checks whether start and end locations are captured
-            if (markerPoints.size >= 1) {
-                mapFragment.getMapAsync { googleMap ->
-                    // Retrieve the current location
-                    val currentLocation = googleMap.myLocation
-                    lat = currentLocation.latitude
-                    long = currentLocation.longitude
-                    // Use the latitude and longitude as needed
-                    Log.d("mylog", "Current Latitude: $lat, Longitude: $long")
-                    origin = LatLng(lat, long)
-                    val dest = markerPoints[0]
-
-                    // Getting URL to the Google Directions API
-                    val sentPI: PendingIntent = PendingIntent.getBroadcast(
-                        this,
-                        0,
-                        Intent("SMS_SENT"),
-                        PendingIntent.FLAG_IMMUTABLE
-                    )
-                    val url = getUrl(origin, dest)
-                    val fetchUrl = FetchURL(this)
-
-                    fetchUrl.execute(url, "walking")
-                }
-
-
-            }
-        }
-
-        // Add markers for the predefined start and destination locations
-        mMap.addMarker(start)
-        mMap.addMarker(destination)
-//        mapFragment.getMapAsync { googleMap ->
-//            // Retrieve the current location
-//            val currentLocation = googleMap.myLocation
-//            val lat = currentLocation.latitude
-//            val long = currentLocation.longitude
-//            // Use the latitude and longitude as needed
-//            val current = LatLng(lat, long)
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(startLocation, 15f))
-        //}
+//        if (ActivityCompat.checkSelfPermission(
+//                this,
+//                Manifest.permission.ACCESS_FINE_LOCATION
+//            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+//                this,
+//                Manifest.permission.ACCESS_COARSE_LOCATION
+//            ) != PackageManager.PERMISSION_GRANTED
+//        ) {
+//            // TODO: Consider calling
+//            //    ActivityCompat#requestPermissions
+//            // here to request the missing permissions, and then overriding
+//            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+//            //                                          int[] grantResults)
+//            // to handle the case where the user grants the permission. See the documentation
+//            // for ActivityCompat#requestPermissions for more details.
+//            return
+//        }
 
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -187,14 +117,110 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
                 this, Manifest.permission.ACCESS_COARSE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            // TODO: Request the necessary permissions
-            return
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 101)
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION), 101)
         }
+
+
+        try {
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 0f, this)
+        } catch (e: Exception) {
+            //Log.d("mylog", "EXCEPTION")
+        }
+
+//        binding.searchBox.setOnEditorActionListener {
+//
+//        }
+
+        binding.buRoute.setOnClickListener {
+            setARoute()
+            setMapLocation()
+        }
+
+        binding.buCentre.setOnClickListener {
+            setMapLocation()
+        }
+
+
+        // Add markers for the predefined start and destination locations
+        mMap.addMarker(start)
+        mMap.addMarker(destination)
 
         // Enable the user's current location on the map
         mMap.isMyLocationEnabled = true
     }
-    private fun getUrl(startLocation: LatLng, destLocation: LatLng): String {
+
+    private fun setMapLocation() {
+        mapFragment.getMapAsync { googleMap ->
+            // Retrieve the current location
+            val currentLocation = googleMap.myLocation
+            val lat = currentLocation.latitude
+            val long = currentLocation.longitude
+            // Use the latitude and longitude as needed
+            val current = LatLng(lat, long)
+            Log.d("mylog", current.toString())
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(current, 15f))
+        }
+    }
+
+    private fun setARoute(){
+        if (markerPoints.size > 0) {
+            markerPoints.clear()
+            mMap.clear()
+        }
+
+        val addr = binding.searchBox.text.toString()
+        val geocode = Geocoder(this, Locale.getDefault())
+        val addList = geocode.getFromLocationName(addr, 1)
+        val latLng = LatLng(addList?.get(0)?.latitude!!, addList[0]?.longitude!!)
+
+        // Adding new item to the ArrayList
+        markerPoints.add(latLng)
+
+        // Creating MarkerOptions
+        val options = MarkerOptions()
+
+        // Setting the position of the marker
+        options.position(latLng)
+
+        if (markerPoints.size == 1) {
+            options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
+        }
+
+        // Add new marker to the map
+        mMap.addMarker(options)
+        var lat = 0.0
+        var long: Double = 0.0
+        var origin: LatLng
+        // Checks whether start and end locations are captured
+        if (markerPoints.size >= 1) {
+            mapFragment.getMapAsync { googleMap ->
+                // Retrieve the current location
+                val currentLocation = googleMap.myLocation
+                lat = currentLocation.latitude
+                long = currentLocation.longitude
+                // Use the latitude and longitude as needed
+               // Log.d("mylog", "Current Latitude: $lat, Longitude: $long")
+                origin = LatLng(lat, long)
+                val dest = markerPoints[0]
+
+                // Getting URL to the Google Directions API
+                val sentPI: PendingIntent = PendingIntent.getBroadcast(
+                    this,
+                    0,
+                    Intent("SMS_SENT"),
+                    PendingIntent.FLAG_IMMUTABLE
+                )
+                val url = getUrl(origin, dest, listOf(LatLng(51.498898, -0.199795)))
+                val fetchUrl = FetchURL(this)
+
+                fetchUrl.execute(url, "walking")
+            }
+
+
+        }}
+
+    private fun getUrl(startLocation: LatLng, destLocation: LatLng, avoidLocations: List<LatLng>): String {
         val sentPI: PendingIntent = PendingIntent.getBroadcast(
             this,
             0,
@@ -206,14 +232,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
         val str_start : String = "origin=" + startLocation.latitude + "," + startLocation.longitude
         val str_dest : String = "destination=" + destLocation.latitude + "," + destLocation.longitude
         val mode : String = "mode=walking"
-
-        val parameters : String = "$str_start&$str_dest&$mode"
+        val avoid = "avoid=${avoidLocations.joinToString(separator = "|") { "${it.latitude},${it.longitude}" }}"
+        val parameters : String = "$str_start&$str_dest&$mode&$avoid"
 
         val output : String = "json"
 
 
         val xyz = "$output?$parameters&key=$key"
         val url = "https://maps.googleapis.com/maps/api/directions/" + xyz
+        Log.d("mylog", url)
 
         return url
     }
@@ -224,14 +251,34 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
     }
 
     override fun onLocationChanged(location: Location) {
-        Log.d("mylog", "LOCATION CHANGED")
-        val userLocation = LatLng(location.latitude, location.longitude)
-        Log.d("mylog", "hello")
-        var hasNotStrayed = false
-        if (!PolyUtil.isLocationOnPath(userLocation, currentPolyline.points, true, 30.0)){
-            // Notify the user or perform any desired actions
-            Toast.makeText(this, "You have strayed from the route!", Toast.LENGTH_SHORT).show()
+        if (mapJustLoaded) {
+            setMapLocation()
+            mapJustLoaded = false
         }
+        Log.d("mylog", "LOCATION CHANGED")
+        try {
+            val userLocation = LatLng(location.latitude, location.longitude)
+            if (!PolyUtil.isLocationOnPath(userLocation, currentPolyline.points, true, 30.0)){
+                // Notify the user or perform any desired actions
+//            Log.d("mylog", repository.allContactItems.toString())
+                val sentPI: PendingIntent = PendingIntent.getBroadcast(
+                    this,
+                    0,
+                    Intent("SMS_SENT"),
+                    PendingIntent.FLAG_IMMUTABLE
+                )
+//            SmsManager.getDefault().sendTextMessage(contactItem?.num, null, "Leaving now!",
+//                sentPI, null)
+                SmsManager.getDefault().sendTextMessage("07894098083", null, "I have strayed from my route",
+                    sentPI, null)
+                Toast.makeText(this, "You have strayed from the route!", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            // Handle the exception (e.g., log, display an error message, etc.)
+            Log.d("mylog", "EXCEPTION1")
+        }
+    }
+
 
 //         //Iterate over the points of the route polyline
 //        if (currentPolyline.points.size > 0) {
@@ -258,9 +305,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
 //        }
 
 
-       //  Handle the case when the user has strayed from the route
+        //  Handle the case when the user has strayed from the route
 
-    }
+
 
 
     private fun calculateDistance(location1: LatLng, location2: LatLng): Float {

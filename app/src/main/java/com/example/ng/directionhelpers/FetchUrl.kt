@@ -23,12 +23,12 @@ class FetchURL(var mContext: TaskLoadedCallback) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val data = downloadUrl(url)
-                Log.d("mylog", "Background task data $data")
-                Log.d("testlog","HI")
+//                Log.d("mylog", "Background task data $data")
+//                Log.d("testlog","HI")
                 onPostExecute(data)
             } catch (e: Exception) {
 
-                Log.d("BackgroundTask", e.toString())
+                //Log.d("BackgroundTask", e.toString())
             }
         }
     }
@@ -59,10 +59,10 @@ class FetchURL(var mContext: TaskLoadedCallback) {
                 sb.append(line)
             }
             data = sb.toString()
-            Log.d("mylog", "Downloaded URL: $data")
+            //Log.d("mylog", "Downloaded URL: $data")
             br.close()
         } catch (e: Exception) {
-            Log.d("mylog", "Exception downloading URL: $e")
+            //Log.d("mylog", "Exception downloading URL: $e")
         } finally {
             iStream?.close()
             urlConnection?.disconnect()

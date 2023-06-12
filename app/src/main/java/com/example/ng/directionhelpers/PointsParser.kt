@@ -26,16 +26,14 @@ class PointsParser(mContext: TaskLoadedCallback, directionMode: String) :
         var routes: List<List<HashMap<String, String>>>? = null
         try {
             jObject = JSONObject(jsonData[0])
-            jsonData[0]?.let { Log.d("mylog", it) }
+            //jsonData[0]?.let { Log.d("mylog", it) }
             val parser = DataParser()
-            Log.d("mylog", parser.toString())
+
 
             // Starts parsing data
             routes = parser.parse(jObject)
-            Log.d("mylog", "Executing routes")
-            Log.d("mylog", routes.toString())
+
         } catch (e: Exception) {
-            Log.d("mylog", e.toString())
             e.printStackTrace()
         }
         return routes
@@ -68,19 +66,19 @@ class PointsParser(mContext: TaskLoadedCallback, directionMode: String) :
                 lineOptions.width(20f)
                 lineOptions.color(Color.BLUE)
             }
-            Log.d("mylog", "onPostExecute lineoptions decoded")
+
         }
 
 
         // Drawing polyline in the Google Map for the i-th route
         if (lineOptions != null) {
-            Log.d("mylog", "end of this1")
+            //Log.d("mylog", "end of this1")
             //mMap.addPolyline(lineOptions);
             taskCallback.onTaskDone(lineOptions)
 
         } else {
-            Log.d("mylog", "without Polylines drawn")
+            //Log.d("mylog", "without Polylines drawn")
         }
-        Log.d("mylog", "end of this2")
+        //Log.d("mylog", "end of this2")
     }
 }
