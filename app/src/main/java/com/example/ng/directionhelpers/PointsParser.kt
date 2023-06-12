@@ -39,16 +39,36 @@ class PointsParser(mContext: TaskLoadedCallback, directionMode: String) :
         return routes
     }
 
+    fun findSafestPath(result: List<List<HashMap<String, String>>>?) {
+        for (i in result!!.indices) {
+            val path = result[i]
+
+
+        }
+    }
+
+
+
     // Executes in UI thread, after the parsing process
     override fun onPostExecute(result: List<List<HashMap<String, String>>>?) {
         var points: ArrayList<LatLng?>
         var lineOptions: PolylineOptions? = null
+
+
+
+
         // Traversing through all the routes
         for (i in result!!.indices) {
+            Log.d("mylog", result!!.indices.toString())
+            Log.d("mylog", i.toString())
             points = ArrayList()
             lineOptions = PolylineOptions()
             // Fetching i-th route
+//            if (i == -1) {
+//                break
+//            }
             val path = result[i]
+            Log.d("mylog", path.toString())
             // Fetching all the points in i-th route
             for (j in path.indices) {
                 val point = path[j]

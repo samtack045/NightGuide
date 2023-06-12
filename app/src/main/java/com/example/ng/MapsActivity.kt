@@ -32,6 +32,7 @@ import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.Polyline
 import com.google.android.gms.maps.model.PolylineOptions
 import java.util.Locale
+import kotlin.math.*
 
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback, LocationListener {
@@ -211,7 +212,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
                     Intent("SMS_SENT"),
                     PendingIntent.FLAG_IMMUTABLE
                 )
-                val url = getUrl(origin, dest, listOf(LatLng(51.498898, -0.199795)))
+
+                val badPoint = LatLng(51.498898, -0.199795)
+                val badRadius = createCircularArea(badPoint, 0.07, 300)
+                val url = getUrl(origin, dest)
                 val fetchUrl = FetchURL(this)
 
                 fetchUrl.execute(url, "walking")
@@ -219,8 +223,29 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
 
 
         }}
+    fun createCircularArea(center: LatLng, radius: Double, numberOfPoints: Int): List<LatLng> {
+        val latLngs = mutableListOf<LatLng>()
+        val centerLat = center.latitude
+        val centerLng = center.longitude
 
-    private fun getUrl(startLocation: LatLng, destLocation: LatLng, avoidLocations: List<LatLng>): String {
+        val distanceRadians = radius / 6371.0 // Earth's radius in kilometers
+        val angleStep = 2 * PI / numberOfPoints
+
+        for (i in 0 until numberOfPoints) {
+            val angle = i * angleStep
+            val lat = asin(sin(centerLat) * cos(distanceRadians) + cos(centerLat) * sin(distanceRadians) * cos(angle))
+            val lng = centerLng + atan2(sin(angle) * sin(distanceRadians) * cos(centerLat),
+                cos(distanceRadians) - sin(centerLat) * sin(lat))
+            latLngs.add(LatLng(lat * 180 / PI, lng * 180 / PI))
+        }
+
+        return latLngs
+    }
+
+
+
+
+    private fun getUrl(startLocation: LatLng, destLocation: LatLng): String {
         val sentPI: PendingIntent = PendingIntent.getBroadcast(
             this,
             0,
@@ -232,8 +257,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
         val str_start : String = "origin=" + startLocation.latitude + "," + startLocation.longitude
         val str_dest : String = "destination=" + destLocation.latitude + "," + destLocation.longitude
         val mode : String = "mode=walking"
-        val avoid = "avoid=${avoidLocations.joinToString(separator = "|") { "${it.latitude},${it.longitude}" }}"
-        val parameters : String = "$str_start&$str_dest&$mode&$avoid"
+      //  val avoid = "avoid=${avoidLocations.joinToString(separator = "|") { "${it.latitude},${it.longitude}" }}"
+        val parameters : String = "$str_start&$str_dest&$mode&alternatives=true"
 
         val output : String = "json"
 
@@ -258,7 +283,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
         Log.d("mylog", "LOCATION CHANGED")
         try {
             val userLocation = LatLng(location.latitude, location.longitude)
-            if (!PolyUtil.isLocationOnPath(userLocation, currentPolyline.points, true, 30.0)){
+            if (!PolyUtil.isLocationOnPath(userLocation, currentPolyline.points, true, 100.0)){
                 // Notify the user or perform any desired actions
 //            Log.d("mylog", repository.allContactItems.toString())
                 val sentPI: PendingIntent = PendingIntent.getBroadcast(
@@ -267,10 +292,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
                     Intent("SMS_SENT"),
                     PendingIntent.FLAG_IMMUTABLE
                 )
-//            SmsManager.getDefault().sendTextMessage(contactItem?.num, null, "Leaving now!",
-//                sentPI, null)
-                SmsManager.getDefault().sendTextMessage("07894098083", null, "I have strayed from my route",
-                    sentPI, null)
+                intent.extras?.getStringArrayList("Emergency Contacts")?.forEach {
+                    SmsManager.getDefault().sendTextMessage(it, null, "An emergency contact has strayed from their route", sentPI, null)
+                }
                 Toast.makeText(this, "You have strayed from the route!", Toast.LENGTH_SHORT).show()
             }
         } catch (e: Exception) {

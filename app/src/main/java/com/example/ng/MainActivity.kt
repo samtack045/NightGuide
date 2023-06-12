@@ -31,8 +31,6 @@ class MainActivity : AppCompatActivity(), ContactItemClickListener {
         ContactItemModelFactory((application as ContactApplication).repository)
     }
 
-
-
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,6 +45,11 @@ class MainActivity : AppCompatActivity(), ContactItemClickListener {
 
         binding.mapsButton.setOnClickListener{
             val intent = Intent(this, MapsActivity::class.java)
+            val nums: List<String> = contactViewModel.contactItems.value
+                //?.filter {it.isEmergencyContact}
+                ?.map {it.num}
+                ?: emptyList()
+            intent.putStringArrayListExtra("Emergency Contacts", ArrayList(nums))
             startActivity(intent)
         }
 

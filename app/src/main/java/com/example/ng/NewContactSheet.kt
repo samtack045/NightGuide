@@ -14,23 +14,28 @@ class NewContactSheet(var contactItem: ContactItem?) : BottomSheetDialogFragment
 
     private lateinit var binding: FragmentNewContactSheetBinding
     private lateinit var contactViewModel: ContactViewModel
+    private var notifyInEmer: Boolean = false
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val activity = requireActivity()
-
-
 
         if (contactItem != null) {
             binding.contactTitle.text = "Edit contact"
             val editable = Editable.Factory.getInstance()
             binding.name.text = editable.newEditable(contactItem!!.name)
             binding.phoneNum.text = editable.newEditable(contactItem!!.num)
+            //binding.isEmergencyContact.isChecked = contactItem!!.isEmergencyContact
+            //notifyInEmer = contactItem!!.isEmergencyContact
         } else {
             binding.contactTitle.text = "New Contact"
         }
 
         contactViewModel = ViewModelProvider(activity)[ContactViewModel::class.java]
+
+//        binding.isEmergencyContact.setOnCheckedChangeListener {_, isChecked ->
+//            notifyInEmer = !notifyInEmer
+//        }
         binding.saveButton.setOnClickListener {
             saveAction()
         }
@@ -58,20 +63,16 @@ class NewContactSheet(var contactItem: ContactItem?) : BottomSheetDialogFragment
 
 
     private fun saveAction() {
-
-
         val name = binding.name.text.toString()
         val num = binding.phoneNum.text.toString()
         if (contactItem == null) {
             val newContact = ContactItem(name, num)
             contactViewModel.addContactItem(newContact)
-
-
         } else {
             contactItem!!.name = name
             contactItem!!.num = num
+            //contactItem!!.isEmergencyContact = notifyInEmer
             contactViewModel.updateContactItem(contactItem!!)
-
         }
 
         binding.name.setText("")

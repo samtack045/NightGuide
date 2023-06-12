@@ -50,6 +50,12 @@
         </com.google.android.material.textfield.TextInputEditText>
     </com.google.android.material.textfield.TextInputLayout>
 
+    <ToggleButton
+        android:id="@+id/isEmergencyContact"
+        android:layout_width="140dp"
+        android:layout_height="wrap_content"
+        android:text="ToggleButton"/>
+
     <com.google.android.material.button.MaterialButton
         android:id="@+id/saveButton"
         android:layout_width="match_parent"
