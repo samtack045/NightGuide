@@ -9,6 +9,7 @@ import android.location.Geocoder
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
@@ -30,9 +31,15 @@ class MainActivity : AppCompatActivity(), ContactItemClickListener {
     private val contactViewModel: ContactViewModel by viewModels {
         ContactItemModelFactory((application as ContactApplication).repository)
     }
+    private var destLat = 100.0
+    private var destLong = 100.0
+    private var addr = ""
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
+        destLat = intent.extras?.getDouble("Latitude")?: 100.0
+        destLong = intent.extras?.getDouble("Longitude")?: 100.0
+        addr = intent.extras?.getString("Address")?: ""
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
 
@@ -45,8 +52,13 @@ class MainActivity : AppCompatActivity(), ContactItemClickListener {
 
         binding.mapsButton.setOnClickListener{
             val intent = Intent(this, MapsActivity::class.java)
+            Log.d("myLo", "Main" + destLat.toString())
+            Log.d("myLo", "Main" + destLong.toString())
+            intent.putExtra("Latitude", destLat)
+            intent.putExtra("Longitude", destLong)
+            intent.putExtra("Address", addr)
             val nums: List<String> = contactViewModel.contactItems.value
-                ?.filter {it.isEmergencyContact}
+                //?.filter {it.isEmergencyContact}
                 ?.map {it.num}
                 ?: emptyList()
             intent.putStringArrayListExtra("Emergency Contacts", ArrayList(nums))
@@ -84,7 +96,6 @@ class MainActivity : AppCompatActivity(), ContactItemClickListener {
 
     override fun msg(contactItem: ContactItem) {
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
-
         val task = fusedLocationProviderClient.lastLocation
         var lat = 0.0
         var longitude = 0.0
@@ -112,7 +123,6 @@ class MainActivity : AppCompatActivity(), ContactItemClickListener {
                 1
             ) // Here 1 represent max location result to returned, by documents it recommended 1 to 5
             NewMessageSheet(contactItem, sentPI, addresses).show(supportFragmentManager, "newMessageTag")
-
         }
     }
 

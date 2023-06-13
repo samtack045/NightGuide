@@ -14,7 +14,7 @@ class NewContactSheet(var contactItem: ContactItem?) : BottomSheetDialogFragment
 
     private lateinit var binding: FragmentNewContactSheetBinding
     private lateinit var contactViewModel: ContactViewModel
-    private var notifyInEmer: Boolean = false
+    //private var notifyInEmer: Boolean = false
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -25,17 +25,17 @@ class NewContactSheet(var contactItem: ContactItem?) : BottomSheetDialogFragment
             val editable = Editable.Factory.getInstance()
             binding.name.text = editable.newEditable(contactItem!!.name)
             binding.phoneNum.text = editable.newEditable(contactItem!!.num)
-            binding.isEmergencyContact.isChecked = contactItem!!.isEmergencyContact
-            notifyInEmer = contactItem!!.isEmergencyContact
+            //binding.isEmergencyContact.isChecked = contactItem!!.isEmergencyContact
+            //notifyInEmer = contactItem!!.isEmergencyContact
         } else {
             binding.contactTitle.text = "New Contact"
         }
 
         contactViewModel = ViewModelProvider(activity)[ContactViewModel::class.java]
 
-        binding.isEmergencyContact.setOnCheckedChangeListener { _, _ ->
-            notifyInEmer = !notifyInEmer
-        }
+//        binding.isEmergencyContact.setOnCheckedChangeListener { _, _ ->
+//            notifyInEmer = !notifyInEmer
+//        }
         binding.saveButton.setOnClickListener {
             saveAction()
         }
@@ -66,12 +66,12 @@ class NewContactSheet(var contactItem: ContactItem?) : BottomSheetDialogFragment
         val name = binding.name.text.toString()
         val num = binding.phoneNum.text.toString()
         if (contactItem == null) {
-            val newContact = ContactItem(name, num, notifyInEmer)
+            val newContact = ContactItem(name, num)
             contactViewModel.addContactItem(newContact)
         } else {
             contactItem!!.name = name
             contactItem!!.num = num
-            contactItem!!.isEmergencyContact = notifyInEmer
+            //contactItem!!.isEmergencyContact = notifyInEmer
             contactViewModel.updateContactItem(contactItem!!)
         }
 

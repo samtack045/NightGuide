@@ -2,6 +2,7 @@ package com.example.ng
 
 import com.google.maps.android.PolyUtil
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
@@ -13,6 +14,7 @@ import android.location.LocationManager
 import android.net.Uri
 import android.os.Bundle
 import android.telephony.SmsManager
+import android.text.Editable
 import android.util.Log
 import android.view.KeyEvent
 import android.widget.TextView
@@ -22,6 +24,8 @@ import androidx.core.app.ActivityCompat
 import com.example.ng.databinding.ActivityMapsBinding
 import com.example.ng.directionhelpers.FetchURL
 import com.example.ng.directionhelpers.TaskLoadedCallback
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -46,8 +50,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
     private val destination : MarkerOptions = MarkerOptions().position(destLocation).title("Earls Court")
     private val markerPoints: ArrayList<LatLng> = ArrayList()
     private var mapJustLoaded = true
+    private var currDest: LatLng? = null
+    private var addr = ""
 
     private lateinit var mapFragment: SupportMapFragment
+
+    private var lastContacted = HashMap<String, Long>()
+
+    lateinit var fusedLocationProviderClient: FusedLocationProviderClient
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,11 +70,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
-
-
-
         binding.contactsPageButton.setOnClickListener {
             val intent = Intent(this, MainActivity::class.java)
+            Log.d("myLo", "contact hit" + (currDest?.latitude?:100.0).toString())
+            Log.d("myLo", "contact hit" + (currDest?.latitude?:100.0).toString())
+            intent.putExtra("Latitude", currDest?.latitude?:100.0)
+            intent.putExtra("Longitude", currDest?.longitude?:100.0)
+            intent.putExtra("Address", addr)
             startActivity(intent)
         }
 
@@ -73,12 +85,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
             intent.data = Uri.parse("tel:" + Uri.encode("123"))
             startActivity(intent)
         }
-
-
-
-
-
-
         mapFragment.getMapAsync(this)
     }
 
@@ -134,7 +140,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
 //        }
 
         binding.buRoute.setOnClickListener {
-            setARoute()
+            addr = binding.searchBox.text.toString()
+            val geocode = Geocoder(this, Locale.getDefault())
+            val addList = geocode.getFromLocationName(addr, 1)
+            val latLng = LatLng(addList?.get(0)?.latitude!!, addList[0]?.longitude!!)
+            setARoute(latLng)
             setMapLocation()
         }
 
@@ -149,6 +159,20 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
 
         // Enable the user's current location on the map
         mMap.isMyLocationEnabled = true
+
+        val lat = intent.extras?.getDouble("Latitude") ?: 100.0
+        val long = intent.extras?.getDouble("Longitude") ?: 100.0
+        Log.d("myLo", "Maps before dest" + lat.toString())
+        Log.d("myLo", "Maps before dest" + long.toString())
+        if (!(lat == 100.0 && long == 100.0)) {
+            currDest = LatLng(lat, long)
+           setARoute(currDest!!)
+        }
+        val destAddress = intent.extras?.getString("Address") ?: ""
+        if (destAddress != "") {
+            val editable = Editable.Factory.getInstance()
+            binding.searchBox.text = editable.newEditable(destAddress)
+        }
     }
 
     private fun setMapLocation() {
@@ -164,16 +188,21 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
         }
     }
 
-    private fun setARoute(){
+
+
+
+    @SuppressLint("MissingPermission")
+    private fun setARoute(latLng: LatLng){
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
         if (markerPoints.size > 0) {
             markerPoints.clear()
             mMap.clear()
         }
 
-        val addr = binding.searchBox.text.toString()
-        val geocode = Geocoder(this, Locale.getDefault())
-        val addList = geocode.getFromLocationName(addr, 1)
-        val latLng = LatLng(addList?.get(0)?.latitude!!, addList[0]?.longitude!!)
+//        val addr = binding.searchBox.text.toString()
+//        val geocode = Geocoder(this, Locale.getDefault())
+//        val addList = geocode.getFromLocationName(addr, 1)
+//        val latLng = LatLng(addList?.get(0)?.latitude!!, addList[0]?.longitude!!)
 
         // Adding new item to the ArrayList
         markerPoints.add(latLng)
@@ -197,32 +226,35 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
         if (markerPoints.size >= 1) {
             mapFragment.getMapAsync { googleMap ->
                 // Retrieve the current location
-                val currentLocation = googleMap.myLocation
-                lat = currentLocation.latitude
-                long = currentLocation.longitude
+                val currentLocation = fusedLocationProviderClient.lastLocation
+                currentLocation.addOnSuccessListener {
+                    if (it != null) {
+                        lat = it.latitude
+                        long = it.longitude
+                    }
+                    Log.d("mylog", "Current Latitude: $lat, Longitude: $long")
+                    origin = LatLng(lat, long)
+                    val dest = markerPoints[0]
+                    currDest = dest
+
+                    // Getting URL to the Google Directions API
+                    val sentPI: PendingIntent = PendingIntent.getBroadcast(
+                        this,
+                        0,
+                        Intent("SMS_SENT"),
+                        PendingIntent.FLAG_IMMUTABLE
+                    )
+
+                    val badPoints = listOf(LatLng(51.490701, -0.186242), LatLng(51.493667, -0.188817))
+
+                    // val badRadius = createCircularArea(badPoint, 0.07, 300)
+                    val url = getUrl(origin, dest)
+                    val fetchUrl = FetchURL(this, badPoints)
+
+                    fetchUrl.execute(url, "walking")
+                }
                 // Use the latitude and longitude as needed
-               // Log.d("mylog", "Current Latitude: $lat, Longitude: $long")
-                origin = LatLng(lat, long)
-                val dest = markerPoints[0]
-
-                // Getting URL to the Google Directions API
-                val sentPI: PendingIntent = PendingIntent.getBroadcast(
-                    this,
-                    0,
-                    Intent("SMS_SENT"),
-                    PendingIntent.FLAG_IMMUTABLE
-                )
-
-                val badPoints = listOf(LatLng(51.490701, -0.186242), LatLng(51.493667, -0.188817))
-
-               // val badRadius = createCircularArea(badPoint, 0.07, 300)
-                val url = getUrl(origin, dest)
-                val fetchUrl = FetchURL(this, badPoints)
-
-                fetchUrl.execute(url, "walking")
             }
-
-
         }}
     fun createCircularArea(center: LatLng, radius: Double, numberOfPoints: Int): List<LatLng> {
         val latLngs = mutableListOf<LatLng>()
@@ -294,7 +326,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
                     PendingIntent.FLAG_IMMUTABLE
                 )
                 intent.extras?.getStringArrayList("Emergency Contacts")?.forEach {
-                    SmsManager.getDefault().sendTextMessage(it, null, "An emergency contact has strayed from their route", sentPI, null)
+                    if (lastContacted.containsKey(it)) {
+                        if (System.currentTimeMillis() - lastContacted[it]!! > 120000) {
+                            SmsManager.getDefault().sendTextMessage(it, null, "An emergency contact has strayed from their route", sentPI, null)
+                            lastContacted[it] = System.currentTimeMillis()
+                        }
+                    } else {
+                        SmsManager.getDefault().sendTextMessage(it, null, "An emergency contact has strayed from their route", sentPI, null)
+                        lastContacted[it] = System.currentTimeMillis()
+                    }
                 }
                 Toast.makeText(this, "You have strayed from the route!", Toast.LENGTH_SHORT).show()
             }
