@@ -50,10 +50,7 @@ class NewMessageSheet(var contactItem: ContactItem?, val sentPI: PendingIntent, 
 //            val knownName = addresses!![0].featureName // Only if available else return NULL
             SmsManager.getDefault().sendTextMessage(contactItem?.num, null,
                 "I am at $address", sentPI, null)
-
         }
-
-
     }
 
     override fun onCreateView(
@@ -63,10 +60,4 @@ class NewMessageSheet(var contactItem: ContactItem?, val sentPI: PendingIntent, 
         binding = FragmentNewMessageSheetBinding.inflate(inflater, container, false)
         return binding.root
     }
-
-
-
-
-
-
 }

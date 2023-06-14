@@ -77,7 +77,6 @@ class NewContactSheet(var contactItem: ContactItem?) : BottomSheetDialogFragment
 
         binding.name.setText("")
         binding.phoneNum.setText("")
-
         dismiss()
     }
 
