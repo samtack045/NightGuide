@@ -21,20 +21,20 @@
         android:layout_gravity="top|right"
         android:layout_margin="16dp"/>
 
+
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/buCentre"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:layout_marginTop="80dp"
+        android:layout_marginLeft="225dp"
         android:backgroundTint="?attr/colorPrimary"
         android:icon="@android:drawable/ic_dialog_alert"
         android:iconTint="?colorOnPrimary"
         android:padding="5dp"
         android:text="Centre"
-        android:textColor="?colorOnPrimary"
-        android:layout_gravity="top|right"
-        android:layout_marginTop="80dp"/>
-
-
+        android:textColor="?colorOnPrimary" />
 
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/contacts_page_button"

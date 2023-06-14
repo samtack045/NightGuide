@@ -16,8 +16,6 @@ import android.os.Bundle
 import android.telephony.SmsManager
 import android.text.Editable
 import android.util.Log
-import android.view.KeyEvent
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -39,8 +37,10 @@ import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.Polyline
 import com.google.android.gms.maps.model.PolylineOptions
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import java.math.BigDecimal
+import java.math.RoundingMode
 import kotlinx.coroutines.launch
-//import kotlinx.coroutines.flow.internal.NoOpContinuation.context
 import java.util.Locale
 import kotlin.math.*
 
@@ -56,6 +56,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
     private var mapJustLoaded = true
     private var currDest: LatLng? = null
     private var addr = ""
+    var offRoute = false
 
     var currMark: Marker? = null
 
@@ -93,7 +94,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
             intent.data = Uri.parse("tel:" + Uri.encode("123"))
             startActivity(intent)
         }
-        mapFragment.getMapAsync(this)
     }
 
     /**
@@ -110,26 +110,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
+        Log.d("myLog", "map ready")
         mMap = googleMap
         val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-//        if (ActivityCompat.checkSelfPermission(
-//                this,
-//                Manifest.permission.ACCESS_FINE_LOCATION
-//            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-//                this,
-//                Manifest.permission.ACCESS_COARSE_LOCATION
-//            ) != PackageManager.PERMISSION_GRANTED
-//        ) {
-//            // TODO: Consider calling
-//            //    ActivityCompat#requestPermissions
-//            // here to request the missing permissions, and then overriding
-//            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-//            //                                          int[] grantResults)
-//            // to handle the case where the user grants the permission. See the documentation
-//            // for ActivityCompat#requestPermissions for more details.
-//            return
-//        }
 
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CALL_PHONE), 101)
+        }
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
             != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
@@ -148,16 +135,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
             //Log.d("mylog", "EXCEPTION")
         }
 
-//        binding.searchBox.setOnEditorActionListener {
-//
-//        }
-
         binding.buRoute.setOnClickListener {
             addr = binding.searchBox.text.toString()
-            val geocode = Geocoder(this, Locale.getDefault())
-            val addList = geocode.getFromLocationName(addr, 1)
-            val latLng = LatLng(addList?.get(0)?.latitude!!, addList[0]?.longitude!!)
-            setARoute(latLng)
+            if (addr != "") {
+                val geocode = Geocoder(this, Locale.getDefault())
+                val addList = geocode.getFromLocationName(addr, 1)
+                val latLng = LatLng(addList?.get(0)?.latitude!!, addList[0]?.longitude!!)
+                setARoute(latLng)
+            }
             setMapLocation()
         }
 
@@ -174,8 +159,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
         Log.d("myLo", "Maps before dest" + long.toString())
         if (!(lat == 100.0 && long == 100.0)) {
             currDest = LatLng(lat, long)
-           setARoute(currDest!!)
+            Log.d("myLog", "route set")
+            setARoute(currDest!!)
         }
+        setMapLocation()
         val destAddress = intent.extras?.getString("Address") ?: ""
         if (destAddress != "") {
             val editable = Editable.Factory.getInstance()
@@ -214,18 +201,21 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
 
     }
 
+    @SuppressLint("MissingPermission")
     private fun setMapLocation() {
-
-        // TODO: CHANGE THIS TO USE FUSED AND CENTRE ON OPEN
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
         mapFragment.getMapAsync { googleMap ->
             // Retrieve the current location
-            val currentLocation = googleMap.myLocation
-            val lat = currentLocation.latitude
-            val long = currentLocation.longitude
-            // Use the latitude and longitude as needed
-            val current = LatLng(lat, long)
-            Log.d("mylog", current.toString())
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(current, 15f))
+            val currentLocation = fusedLocationProviderClient.lastLocation
+            currentLocation.addOnSuccessListener {
+                if (it != null) {
+                    val lat = it.latitude
+                    val long = it.longitude
+                    val current = LatLng(lat, long)
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(current, 15f))
+                }
+
+            }
         }
     }
 
@@ -233,18 +223,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
 
 
     @SuppressLint("MissingPermission")
-    private fun setARoute(latLng: LatLng){
+    fun setARoute(latLng: LatLng){
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
         if (markerPoints.size > 0) {
             markerPoints.clear()
             currentPolyline.remove()
             currMark?.remove()
         }
-
-//        val addr = binding.searchBox.text.toString()
-//        val geocode = Geocoder(this, Locale.getDefault())
-//        val addList = geocode.getFromLocationName(addr, 1)
-//        val latLng = LatLng(addList?.get(0)?.latitude!!, addList[0]?.longitude!!)
 
         // Adding new item to the ArrayList
         markerPoints.add(latLng)
@@ -309,7 +294,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
                 }
                 // Use the latitude and longitude as needed
             }
-        }}
+        }
+    }
     fun createCircularArea(center: LatLng, radius: Double, numberOfPoints: Int): List<LatLng> {
         val latLngs = mutableListOf<LatLng>()
         val centerLat = center.latitude
@@ -325,12 +311,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
                 cos(distanceRadians) - sin(centerLat) * sin(lat))
             latLngs.add(LatLng(lat * 180 / PI, lng * 180 / PI))
         }
-
         return latLngs
     }
-
-
-
 
     private fun getUrl(startLocation: LatLng, destLocation: LatLng): String {
         val sentPI: PendingIntent = PendingIntent.getBroadcast(
@@ -368,66 +350,34 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
             mapJustLoaded = false
         }
         Log.d("mylog", "LOCATION CHANGED")
+        val sentPI: PendingIntent = PendingIntent.getBroadcast(
+            this,
+            0,
+            Intent("SMS_SENT"),
+            PendingIntent.FLAG_IMMUTABLE
+        )
         try {
             val userLocation = LatLng(location.latitude, location.longitude)
-            if (!PolyUtil.isLocationOnPath(userLocation, currentPolyline.points, true, 100.0)){
-                // Notify the user or perform any desired actions
-//            Log.d("mylog", repository.allContactItems.toString())
-                val sentPI: PendingIntent = PendingIntent.getBroadcast(
-                    this,
-                    0,
-                    Intent("SMS_SENT"),
-                    PendingIntent.FLAG_IMMUTABLE
-                )
-                intent.extras?.getStringArrayList("Emergency Contacts")?.forEach {
-                    if (lastContacted.containsKey(it)) {
-                        if (System.currentTimeMillis() - lastContacted[it]!! > 120000) {
-                            SmsManager.getDefault().sendTextMessage(it, null, "An emergency contact has strayed from their route", sentPI, null)
-                            lastContacted[it] = System.currentTimeMillis()
+            if (!PolyUtil.isLocationOnPath(userLocation, currentPolyline.points, true, 1.0)){
+                if (!offRoute) {
+                    NewDeviationSheet(sentPI, intent.extras?.getStringArrayList("Emergency Contacts"), destLocation, this).show(supportFragmentManager, "newDeviationTag")
+                }
+            } else {
+                if (currDest != null) {
+                    if (BigDecimal(location.latitude).setScale(4) == BigDecimal(
+                            currDest!!.latitude).setScale(4) && BigDecimal(location.longitude).setScale(4) == BigDecimal(location.longitude).setScale(4)) {
+                        Toast.makeText(this, "You have reached your destination!", Toast.LENGTH_SHORT).show()
+                        intent.extras?.getStringArrayList("Emergency Contacts")?.forEach{
+                            SmsManager.getDefault().sendTextMessage(it, null, "I have reached my destination", sentPI, null)
                         }
-                    } else {
-                        SmsManager.getDefault().sendTextMessage(it, null, "An emergency contact has strayed from their route", sentPI, null)
-                        lastContacted[it] = System.currentTimeMillis()
                     }
                 }
-                Toast.makeText(this, "You have strayed from the route!", Toast.LENGTH_SHORT).show()
             }
         } catch (e: Exception) {
             // Handle the exception (e.g., log, display an error message, etc.)
             Log.d("mylog", "EXCEPTION1")
         }
     }
-
-
-//         //Iterate over the points of the route polyline
-//        if (currentPolyline.points.size > 0) {
-//            for (point in currentPolyline.points) {
-//                Log.d("mylog", "In loop")
-//                val routePoint = LatLng(point.latitude, point.longitude)
-//
-//                // Calculate the distance between the user's location and the route point
-//                val distance = calculateDistance(userLocation, routePoint)
-//                Log.d("mylog", "NEW DISTANCE(S)")
-//                Log.d("mylog", distance.toString())
-//
-//                // Define a threshold distance to consider as "straying"
-//                val threshold = 100 // Adjust this value as needed
-//
-//                // If the distance exceeds the threshold, set the flag to indicate straying
-//                if (distance < threshold) {
-//                    hasNotStrayed = true
-//                    break
-//                }
-//            }
-//        }else{
-//            Log.d("mylog", "No points, I'll stop")
-//        }
-
-
-        //  Handle the case when the user has strayed from the route
-
-
-
 
     private fun calculateDistance(location1: LatLng, location2: LatLng): Float {
         val results = FloatArray(1)
