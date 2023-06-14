@@ -358,14 +358,21 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
         )
         try {
             val userLocation = LatLng(location.latitude, location.longitude)
-            if (!PolyUtil.isLocationOnPath(userLocation, currentPolyline.points, true, 1.0)){
+            if (!PolyUtil.isLocationOnPath(userLocation, currentPolyline.points, true, 100.0)){
                 if (!offRoute) {
                     NewDeviationSheet(sentPI, intent.extras?.getStringArrayList("Emergency Contacts"), destLocation, this).show(supportFragmentManager, "newDeviationTag")
                 }
             } else {
+                Log.d("myLog", "HERE")
                 if (currDest != null) {
-                    if (BigDecimal(location.latitude).setScale(4) == BigDecimal(
-                            currDest!!.latitude).setScale(4) && BigDecimal(location.longitude).setScale(4) == BigDecimal(location.longitude).setScale(4)) {
+                    Log.d("myLog", "HERE1")
+                    Log.d("myLog", "latcurrDest" + currDest!!.latitude.toString())
+                    val latcurrrounded:Double = String.format("%.1f", currDest!!.latitude).toDouble()
+                    val latlocrounded:Double = String.format("%.1f", location.latitude).toDouble()
+                    Log.d("myLog", latcurrrounded.toString())
+                    Log.d("myLog", latlocrounded.toString())
+                    if (latcurrrounded == latlocrounded) {
+                        Log.d("myLog", "HERE2")
                         Toast.makeText(this, "You have reached your destination!", Toast.LENGTH_SHORT).show()
                         intent.extras?.getStringArrayList("Emergency Contacts")?.forEach{
                             SmsManager.getDefault().sendTextMessage(it, null, "I have reached my destination", sentPI, null)
