@@ -21,6 +21,9 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.lifecycle.asLiveData
+import androidx.lifecycle.lifecycleScope
+import androidx.room.Room
 import com.example.ng.databinding.ActivityMapsBinding
 import com.example.ng.directionhelpers.FetchURL
 import com.example.ng.directionhelpers.TaskLoadedCallback
@@ -32,9 +35,12 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.Polyline
 import com.google.android.gms.maps.model.PolylineOptions
+import kotlinx.coroutines.launch
+//import kotlinx.coroutines.flow.internal.NoOpContinuation.context
 import java.util.Locale
 import kotlin.math.*
 
@@ -46,18 +52,20 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
     private lateinit var currentPolyline : Polyline
     private val startLocation = LatLng(51.500801, -0.180550)
     private val destLocation = LatLng(51.49151686664713, -0.1939163228939211)
-    private val start : MarkerOptions = MarkerOptions().position(startLocation).title("Huxley")
-    private val destination : MarkerOptions = MarkerOptions().position(destLocation).title("Earls Court")
     private val markerPoints: ArrayList<LatLng> = ArrayList()
     private var mapJustLoaded = true
     private var currDest: LatLng? = null
     private var addr = ""
+
+    var currMark: Marker? = null
 
     private lateinit var mapFragment: SupportMapFragment
 
     private var lastContacted = HashMap<String, Long>()
 
     lateinit var fusedLocationProviderClient: FusedLocationProviderClient
+
+    private lateinit var incidentPoints: MutableList<IncidentPoint>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -97,6 +105,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
      * it inside the SupportMapFragment. This method will only be triggered once the user has
      * installed Google Play services and returned to the app.
      */
+    fun getMap(): GoogleMap {
+        return mMap
+    }
+
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
         val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
@@ -126,6 +138,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
         ) {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 101)
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION), 101)
+            return
         }
 
 
@@ -152,11 +165,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
             setMapLocation()
         }
 
-
-        // Add markers for the predefined start and destination locations
-        mMap.addMarker(start)
-        mMap.addMarker(destination)
-
         // Enable the user's current location on the map
         mMap.isMyLocationEnabled = true
 
@@ -173,9 +181,42 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
             val editable = Editable.Factory.getInstance()
             binding.searchBox.text = editable.newEditable(destAddress)
         }
+
+
+        mMap.setOnMapClickListener {
+            val d1 = ContactItemDatabase.getDatabase(applicationContext)
+            val ipdao = d1.IPDao()
+            ReportIncidentSheet(it, this, ipdao).show(supportFragmentManager, "newReportIncidentTag")
+        }
+
+        //val db = Room.databaseBuilder(applicationContext, ContactItemDatabase::class.java, "contact_item_database")
+
+        val d1 = ContactItemDatabase.getDatabase(applicationContext)
+        val ipdao = d1.IPDao()
+        val m = mutableListOf<IncidentPoint>()
+        lifecycleScope.launch{
+            ipdao.allPoints().collect{v ->
+                Log.d("myLog", "this is v" + v.toString())
+                    m.addAll(v)
+
+                Log.d("myLog", "this is m" + m.toString())
+                //  for (p in m){
+                //Log.d("myLog", p.toString())
+                for (p in m) {
+                    mMap.addMarker(MarkerOptions().position(LatLng(p.lat, p.long)).title("Incident Reported"))
+                  //  incidentPoints.add(p)
+                }
+            }
+        }
+
+
+
+
     }
 
     private fun setMapLocation() {
+
+        // TODO: CHANGE THIS TO USE FUSED AND CENTRE ON OPEN
         mapFragment.getMapAsync { googleMap ->
             // Retrieve the current location
             val currentLocation = googleMap.myLocation
@@ -196,7 +237,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
         if (markerPoints.size > 0) {
             markerPoints.clear()
-            mMap.clear()
+            currentPolyline.remove()
+            currMark?.remove()
         }
 
 //        val addr = binding.searchBox.text.toString()
@@ -218,7 +260,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
         }
 
         // Add new marker to the map
-        mMap.addMarker(options)
+        currMark = mMap.addMarker(options)
         var lat = 0.0
         var long: Double = 0.0
         var origin: LatLng
@@ -245,13 +287,25 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
                         PendingIntent.FLAG_IMMUTABLE
                     )
 
-                    val badPoints = listOf(LatLng(51.490701, -0.186242), LatLng(51.493667, -0.188817))
 
-                    // val badRadius = createCircularArea(badPoint, 0.07, 300)
                     val url = getUrl(origin, dest)
-                    val fetchUrl = FetchURL(this, badPoints)
+                    val t = this
+                    lifecycleScope.launch{
+                        val db = ContactItemDatabase.getDatabase(applicationContext)
+                        val ipDao = db.IPDao()
+                        val badPoints = mutableListOf<LatLng>()
+                        ipDao.allPoints().collect{l ->
+                            val l1 = l.map {
+                                LatLng(it.lat, it.long)
+                            }
+                            badPoints.addAll(l1)
+                            Log.d("myLog", "mybadpts" + badPoints.toString())
+                            val fetchUrl = FetchURL(t, badPoints)
+                            fetchUrl.execute(url, "walking")
+                        }
 
-                    fetchUrl.execute(url, "walking")
+
+                    }
                 }
                 // Use the latitude and longitude as needed
             }

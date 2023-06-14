@@ -5,10 +5,12 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = [ContactItem::class], version = 1, exportSchema = false)
+@Database(entities = [ContactItem::class, IncidentPoint::class], version = 2)
 abstract class ContactItemDatabase: RoomDatabase() {
 
     abstract fun contactItemDao(): ContactItemDao
+
+    abstract fun IPDao(): IPDao
 
     companion object {
         @Volatile
@@ -20,7 +22,7 @@ abstract class ContactItemDatabase: RoomDatabase() {
                     context.applicationContext,
                     ContactItemDatabase::class.java,
                     "contact_item_database"
-                ).build()
+                ).fallbackToDestructiveMigration().build()
                 INSTANCE = instance
                 instance
             }
