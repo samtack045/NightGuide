@@ -41,7 +41,7 @@
           android:padding="5dp"
           android:text="SOS"
           android:textColor="?colorOnPrimary"
-          android:layout_gravity="top|right"
+          android:layout_gravity="top"
           android:layout_margin="16dp"/>
 
    </LinearLayout>

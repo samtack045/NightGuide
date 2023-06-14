@@ -30,16 +30,22 @@ class NewDeviationSheet(
         dialog.setCancelable(false)
         dialog.setCanceledOnTouchOutside(false)
         mapsActivity.offRoute = true
-        timer = object : CountDownTimer(10_000, 1_000) {
+        timer = object : CountDownTimer(60_000, 1_000) {
             override fun onTick(remaining: Long) {
-                binding.countdownText.text = remaining.toString()
+                binding.countdownText.text = (remaining / 1000).toString()
+                if ((remaining / 1000) < 2) {
+                    binding.countdownUnits.text = "second"
+                }
             }
             override fun onFinish() {
                 contacts?.forEach {
                     Log.d("mylog", it)
                     SmsManager.getDefault().sendTextMessage(it, null, "I have gone off route", sentPI, null)
                 }
-                binding.countdownText.text = "Contacts have been messaged"
+                binding.countdownText.text = ""
+                binding.countdownMessage.text = "Your contacts have been messaged"
+                binding.butmessageContacts.visibility = View.INVISIBLE
+                binding.countdownUnits.visibility = View.INVISIBLE
             }
         }
     }

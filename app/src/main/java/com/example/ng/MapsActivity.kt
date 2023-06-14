@@ -13,6 +13,7 @@ import android.location.LocationListener
 import android.location.LocationManager
 import android.net.Uri
 import android.os.Bundle
+import android.telephony.SmsManager
 import android.text.Editable
 import android.util.Log
 import android.widget.Toast
@@ -33,6 +34,8 @@ import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.Polyline
 import com.google.android.gms.maps.model.PolylineOptions
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import java.math.BigDecimal
+import java.math.RoundingMode
 import java.util.Locale
 import kotlin.math.*
 
@@ -84,7 +87,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
             intent.data = Uri.parse("tel:" + Uri.encode("123"))
             startActivity(intent)
         }
-        mapFragment.getMapAsync(this)
     }
 
     /**
@@ -97,25 +99,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
      * installed Google Play services and returned to the app.
      */
     override fun onMapReady(googleMap: GoogleMap) {
+        Log.d("myLog", "map ready")
         mMap = googleMap
         val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-//        if (ActivityCompat.checkSelfPermission(
-//                this,
-//                Manifest.permission.ACCESS_FINE_LOCATION
-//            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-//                this,
-//                Manifest.permission.ACCESS_COARSE_LOCATION
-//            ) != PackageManager.PERMISSION_GRANTED
-//        ) {
-//            // TODO: Consider calling
-//            //    ActivityCompat#requestPermissions
-//            // here to request the missing permissions, and then overriding
-//            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-//            //                                          int[] grantResults)
-//            // to handle the case where the user grants the permission. See the documentation
-//            // for ActivityCompat#requestPermissions for more details.
-//            return
-//        }
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED){
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CALL_PHONE), 101)
@@ -137,16 +123,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
             //Log.d("mylog", "EXCEPTION")
         }
 
-//        binding.searchBox.setOnEditorActionListener {
-//
-//        }
-
         binding.buRoute.setOnClickListener {
             addr = binding.searchBox.text.toString()
-            val geocode = Geocoder(this, Locale.getDefault())
-            val addList = geocode.getFromLocationName(addr, 1)
-            val latLng = LatLng(addList?.get(0)?.latitude!!, addList[0]?.longitude!!)
-            setARoute(latLng)
+            if (addr != "") {
+                val geocode = Geocoder(this, Locale.getDefault())
+                val addList = geocode.getFromLocationName(addr, 1)
+                val latLng = LatLng(addList?.get(0)?.latitude!!, addList[0]?.longitude!!)
+                setARoute(latLng)
+            }
             setMapLocation()
         }
 
@@ -168,7 +152,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
         Log.d("myLo", "Maps before dest" + long.toString())
         if (!(lat == 100.0 && long == 100.0)) {
             currDest = LatLng(lat, long)
-           setARoute(currDest!!)
+            Log.d("myLog", "route set")
+            setARoute(currDest!!)
         }
         setMapLocation()
         val destAddress = intent.extras?.getString("Address") ?: ""
@@ -176,12 +161,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
             val editable = Editable.Factory.getInstance()
             binding.searchBox.text = editable.newEditable(destAddress)
         }
-        val sentPI: PendingIntent = PendingIntent.getBroadcast(
-            this,
-            0,
-            Intent("SMS_SENT"),
-            PendingIntent.FLAG_IMMUTABLE
-        )
     }
 
     @SuppressLint("MissingPermission")
@@ -264,7 +243,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
                 }
                 // Use the latitude and longitude as needed
             }
-        }}
+        }
+    }
     fun createCircularArea(center: LatLng, radius: Double, numberOfPoints: Int): List<LatLng> {
         val latLngs = mutableListOf<LatLng>()
         val centerLat = center.latitude
@@ -319,37 +299,27 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
             mapJustLoaded = false
         }
         Log.d("mylog", "LOCATION CHANGED")
+        val sentPI: PendingIntent = PendingIntent.getBroadcast(
+            this,
+            0,
+            Intent("SMS_SENT"),
+            PendingIntent.FLAG_IMMUTABLE
+        )
         try {
             val userLocation = LatLng(location.latitude, location.longitude)
             if (!PolyUtil.isLocationOnPath(userLocation, currentPolyline.points, true, 1.0)){
-                // Notify the user or perform any desired actions
-//            Log.d("mylog", repository.allContactItems.toString())
-                val sentPI: PendingIntent = PendingIntent.getBroadcast(
-                    this,
-                    0,
-                    Intent("SMS_SENT"),
-                    PendingIntent.FLAG_IMMUTABLE
-                )
-//                intent.extras?.getStringArrayList("Emergency Contacts")?.forEach {
-//                    if (lastContacted.containsKey(it)) {
-//                        if (System.currentTimeMillis() - lastContacted[it]!! > 120000) {
-//                            SmsManager.getDefault().sendTextMessage(it, null, "An emergency contact has strayed from their route", sentPI, null)
-//                            lastContacted[it] = System.currentTimeMillis()
-//                        }
-//                    } else {
-//                        SmsManager.getDefault().sendTextMessage(it, null, "An emergency contact has strayed from their route", sentPI, null)
-//                        lastContacted[it] = System.currentTimeMillis()
-//                    }
-//                }
-                Toast.makeText(this, "You have strayed from the route!", Toast.LENGTH_SHORT).show()
-
-                //Pop up with countdown to when contacts will be messaged
-                //Button to dismiss pop up and automatically reroute from current location, if message has already been sent to contacts, message again to notify that user is back on route
-                //Button to message contacts immediately
-                //Until button is clicked, keep pop up open and message contacts when countdown reaches 0
-                //Reset countdown and continue messaging contacts until pop up dismissed?
                 if (!offRoute) {
                     NewDeviationSheet(sentPI, intent.extras?.getStringArrayList("Emergency Contacts"), destLocation, this).show(supportFragmentManager, "newDeviationTag")
+                }
+            } else {
+                if (currDest != null) {
+                    if (BigDecimal(location.latitude).setScale(4) == BigDecimal(
+                            currDest!!.latitude).setScale(4) && BigDecimal(location.longitude).setScale(4) == BigDecimal(location.longitude).setScale(4)) {
+                        Toast.makeText(this, "You have reached your destination!", Toast.LENGTH_SHORT).show()
+                        intent.extras?.getStringArrayList("Emergency Contacts")?.forEach{
+                            SmsManager.getDefault().sendTextMessage(it, null, "I have reached my destination", sentPI, null)
+                        }
+                    }
                 }
             }
         } catch (e: Exception) {

@@ -18,18 +18,29 @@
         style="@style/TextAppearance.AppCompat.Title"/>
 
     <TextView
+        android:id="@+id/countdown_message"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="20sp"
+        android:textSize="18sp"
         android:text="Contacts will be messaged in: " />
 
     <TextView
         android:id="@+id/countdown_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="280dp"
-        android:textSize="50sp"
+        android:layout_marginTop="-24dp"
+        android:layout_marginLeft="245dp"
+        android:textSize="18sp"
         tools:text="2:00" />
+
+    <TextView
+        android:id="@+id/countdown_units"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="-25dp"
+        android:layout_marginLeft="275dp"
+        android:textSize="18sp"
+        android:text="seconds" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/butReroute"
