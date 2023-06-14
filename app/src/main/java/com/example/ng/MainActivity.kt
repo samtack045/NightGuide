@@ -85,7 +85,7 @@ class MainActivity : AppCompatActivity(), ContactItemClickListener {
         contactViewModel.contactItems.observe(this){
             binding.contactListRecyclerView.apply {
                 layoutManager = LinearLayoutManager(applicationContext)
-                adapter = ContactItemAdapter(it.filter { x -> x.num != null } as MutableList<ContactItem>, mainActivity)
+                adapter = ContactItemAdapter(it as MutableList<ContactItem>, mainActivity)
             }
         }
     }

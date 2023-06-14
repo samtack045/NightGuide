@@ -13,7 +13,6 @@ import java.util.UUID
 class ContactViewModel(private val repository: ContactItemRepository): ViewModel() {
     var contactItems: LiveData<List<ContactItem>> = repository.allContactItems.asLiveData()
 
-
     fun addContactItem(newContact: ContactItem) = viewModelScope.launch {
         repository.insertContactItem(newContact)
     }

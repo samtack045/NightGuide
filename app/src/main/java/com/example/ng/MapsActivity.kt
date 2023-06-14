@@ -138,7 +138,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
             setMapLocation()
         }
 
-
         // Add markers for the predefined start and destination locations
         mMap.addMarker(start)
         mMap.addMarker(destination)
@@ -148,8 +147,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
 
         val lat = intent.extras?.getDouble("Latitude") ?: 100.0
         val long = intent.extras?.getDouble("Longitude") ?: 100.0
-        Log.d("myLo", "Maps before dest" + lat.toString())
-        Log.d("myLo", "Maps before dest" + long.toString())
+        Log.d("myLo", "Maps before dest$lat")
+        Log.d("myLo", "Maps before dest$long")
         if (!(lat == 100.0 && long == 100.0)) {
             currDest = LatLng(lat, long)
             Log.d("myLog", "route set")
@@ -313,12 +312,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
                 }
             } else {
                 if (currDest != null) {
-                    if (BigDecimal(location.latitude).setScale(4) == BigDecimal(
-                            currDest!!.latitude).setScale(4) && BigDecimal(location.longitude).setScale(4) == BigDecimal(location.longitude).setScale(4)) {
-                        Toast.makeText(this, "You have reached your destination!", Toast.LENGTH_SHORT).show()
-                        intent.extras?.getStringArrayList("Emergency Contacts")?.forEach{
-                            SmsManager.getDefault().sendTextMessage(it, null, "I have reached my destination", sentPI, null)
-                        }
+                    if (BigDecimal(location.latitude).setScale(3) == BigDecimal(
+                            currDest!!.latitude).setScale(3) && BigDecimal(location.longitude).setScale(3) == BigDecimal(location.longitude).setScale(3)) {
+                        RouteCompleteSheet(sentPI, intent.extras?.getStringArrayList("Emergency Contacts")).show(supportFragmentManager, "newDeviationTag")
                     }
                 }
             }
