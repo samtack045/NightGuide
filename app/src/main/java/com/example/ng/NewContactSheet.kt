@@ -42,8 +42,6 @@ class NewContactSheet(var contactItem: ContactItem?) : BottomSheetDialogFragment
         binding.deleteButton.setOnClickListener {
             deleteAction()
         }
-
-
     }
 
     override fun onCreateView(

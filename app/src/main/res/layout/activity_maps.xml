@@ -1,94 +1,125 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
-    android:id="@+id/main_content"
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_content"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
-
-    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
-        android:id="@+id/buSOS"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:backgroundTint="#FF0000"
-        android:icon="@android:drawable/ic_dialog_alert"
-        android:iconTint="@color/red"
-        android:padding="5dp"
-        android:text="SOS"
-        android:textColor="?colorOnPrimary"
-        android:layout_gravity="top|right"
-        android:layout_margin="16dp"/>
-
-
-    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
-        android:id="@+id/buCentre"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="top"
-        android:layout_marginTop="80dp"
-        android:layout_marginLeft="225dp"
-        android:backgroundTint="?attr/colorPrimary"
-        android:icon="@android:drawable/ic_dialog_alert"
-        android:iconTint="?colorOnPrimary"
-        android:padding="5dp"
-        android:text="Centre"
-        android:textColor="?colorOnPrimary" />
-
-    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
-        android:id="@+id/contacts_page_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:backgroundTint="?attr/colorPrimary"
-        android:icon="@android:drawable/ic_dialog_alert"
-        android:iconTint="?colorOnPrimary"
-        android:padding="5dp"
-        android:text="Contacts"
-        android:textColor="?colorOnPrimary"
-        android:layout_gravity="top|left"
-        android:layout_margin="16dp"/>
-
-    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
-        android:id="@+id/buRoute"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:backgroundTint="?attr/colorPrimary"
-        android:icon="@android:drawable/ic_dialog_alert"
-        android:iconTint="?colorOnPrimary"
-        android:padding="5dp"
-        android:text="Route"
-        android:textColor="?colorOnPrimary"
-        android:layout_gravity="bottom|right"
-        android:layout_margin="16dp"/>
 
     <fragment
         android:id="@+id/map"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".MapsActivity"></fragment>
+        android:visibility="visible"
+        tools:context=".MapsActivity"
+        tools:layout_editor_absoluteX="0dp"
+        tools:layout_editor_absoluteY="0dp"></fragment>
 
-    <androidx.appcompat.widget.LinearLayoutCompat
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@+id/main_content"
-        android:layout_marginTop="80dp">
     <EditText
         android:id="@+id/searchBox"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        android:hint="@string/where_do_you_want_to_go"
-        android:layout_marginTop="30dp"
-        android:layout_margin="16dp"
-        android:textColorHint="#8C8C8C"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp"
+        android:layout_marginBottom="12dp"
+        android:layout_weight="1"
         android:background="@color/white"
-        android:textColor="#000000" />
+        android:hint="@string/where_do_you_want_to_go"
+        android:textColor="#000000"
+        android:textColorHint="#8C8C8C"
+        android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/buRoute"
+        app:layout_constraintStart_toStartOf="parent"
+        app:showAsAction="always"
+        tools:visibility="visible" />
 
-    </androidx.appcompat.widget.LinearLayoutCompat>
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/buSOS"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:backgroundTint="#FF0000"
+        android:iconTint="@color/red"
+        android:padding="5dp"
+        android:text="SOS"
+        android:textColor="?colorOnPrimary"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/buCentre"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="24dp"
+        android:backgroundTint="?attr/colorPrimary"
+        android:icon="@android:drawable/ic_dialog_alert"
+        android:iconTint="?colorOnPrimary"
+        android:padding="5dp"
+        android:textColor="?colorOnPrimary"
+        app:icon="@drawable/ic_action_name"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/buSOS" />
+
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/contacts_page_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:backgroundTint="?attr/colorPrimary"
+        android:icon="@android:drawable/ic_dialog_alert"
+        android:iconTint="?colorOnPrimary"
+        android:padding="5dp"
+        android:text="Contacts"
+        android:textColor="?colorOnPrimary"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/buRoute"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:backgroundTint="?attr/colorPrimary"
+        android:icon="@android:drawable/ic_dialog_alert"
+        android:iconTint="?colorOnPrimary"
+        android:padding="5dp"
+        android:textColor="?colorOnPrimary"
+        app:icon="@drawable/ic_route_icon"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/buEditFave"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="8dp"
+        android:backgroundTint="?attr/colorPrimary"
+        app:icon="@drawable/baseline_edit_location_alt_24"
+        app:iconTint="#FFFFFF"
+        app:iconTintMode="src_in"
+        app:layout_constraintBottom_toTopOf="@+id/searchBox"
+        app:layout_constraintStart_toEndOf="@+id/buHome" />
+
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/buHome"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginBottom="8dp"
+        android:backgroundTint="?attr/colorPrimary"
+        app:icon="@drawable/baseline_home_24"
+        app:iconTint="#FFFFFF"
+        app:iconTintMode="src_in"
+        app:layout_constraintBottom_toTopOf="@+id/searchBox"
+        app:layout_constraintStart_toStartOf="parent" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
 
