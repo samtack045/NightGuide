@@ -9,10 +9,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
-import com.example.ng.databinding.FragmentNewContactSheetBinding
 import com.example.ng.databinding.FragmentNewFaveLocationSheetBinding
-import com.google.android.gms.maps.model.LatLng
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import kotlinx.coroutines.CoroutineScope
 import java.util.Locale
 
 /**
@@ -20,7 +19,7 @@ import java.util.Locale
  * Use the [NewFaveLocationSheet.newInstance] factory method to
  * create an instance of this fragment.
  */
-class NewFaveLocationSheet(var faveLocationItem: FaveLocationItem?, mapsActivity : AppCompatActivity) : BottomSheetDialogFragment() {
+class NewFaveLocationSheet(var faveLocationItem: FaveLocationItem?, mapsActivity: AppCompatActivity) : BottomSheetDialogFragment() {
 
     private lateinit var binding: FragmentNewFaveLocationSheetBinding
     private lateinit var faveLocationViewModel: FaveLocationViewModel
@@ -30,9 +29,11 @@ class NewFaveLocationSheet(var faveLocationItem: FaveLocationItem?, mapsActivity
         super.onViewCreated(view, savedInstanceState)
         val activity = requireActivity()
 
-        val editable = Editable.Factory.getInstance()
-        binding.editTextName.text = editable.newEditable(faveLocationItem!!.name)
-        binding.editTextLocation.text = editable.newEditable("Location")
+        if (faveLocationItem != null) {
+            val editable = Editable.Factory.getInstance()
+            binding.editTextName.text = editable.newEditable(faveLocationItem!!.name)
+            binding.editTextLocation.text = editable.newEditable("Location")
+        }
 
         faveLocationViewModel = ViewModelProvider(activity)[FaveLocationViewModel::class.java]
         binding.buSave.setOnClickListener {
