@@ -43,11 +43,6 @@ class NewMessageSheet(var contactItem: ContactItem?, val sentPI: PendingIntent, 
         binding.butLocation.setOnClickListener {
             val address =
                 addresses!![0].getAddressLine(0) // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
-//            val city = addresses!![0].locality
-//            val state = addresses!![0].adminArea
-//            val country = addresses!![0].countryName
-//            val postalCode = addresses!![0].postalCode
-//            val knownName = addresses!![0].featureName // Only if available else return NULL
             SmsManager.getDefault().sendTextMessage(contactItem?.num, null,
                 "I am at $address", sentPI, null)
         }

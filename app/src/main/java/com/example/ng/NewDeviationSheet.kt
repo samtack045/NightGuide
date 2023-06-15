@@ -1,6 +1,7 @@
 package com.example.ng
 
 import android.app.PendingIntent
+import android.location.Address
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.telephony.SmsManager
@@ -18,6 +19,7 @@ class NewDeviationSheet(
     val sentPI: PendingIntent,
     val contacts: ArrayList<String>?,
     val dest: LatLng,
+    val addresses: List<Address>?,
     val mapsActivity: MapsActivity
 ): BottomSheetDialogFragment()
 {
@@ -38,9 +40,10 @@ class NewDeviationSheet(
                 }
             }
             override fun onFinish() {
+                val address = addresses!![0].getAddressLine(0)
                 contacts?.forEach {
                     Log.d("mylog", it)
-                    SmsManager.getDefault().sendTextMessage(it, null, "I have gone off route", sentPI, null)
+                    SmsManager.getDefault().sendTextMessage(it, null, "I have gone off route, I am at $address", sentPI, null)
                 }
                 binding.countdownText.text = ""
                 binding.countdownMessage.text = "Your contacts have been messaged"
@@ -59,8 +62,9 @@ class NewDeviationSheet(
         }
 
         binding.butmessageContacts.setOnClickListener {
+            val address = addresses!![0].getAddressLine(0)
             contacts?.forEach {
-                SmsManager.getDefault().sendTextMessage(it, null, "I have gone off route", sentPI, null)
+                SmsManager.getDefault().sendTextMessage(it, null, "I have gone off route, I am at $address", sentPI, null)
             }
             mapsActivity.setARoute(dest)
             mapsActivity.offRoute = false

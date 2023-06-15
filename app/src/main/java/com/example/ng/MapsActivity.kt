@@ -7,6 +7,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.location.Address
 import android.location.Geocoder
 import android.location.Location
 import android.location.LocationListener
@@ -338,7 +339,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
             val userLocation = LatLng(location.latitude, location.longitude)
             if (!PolyUtil.isLocationOnPath(userLocation, currentPolyline!!.points, true, 100.0)){
                 if (!offRoute) {
-                    NewDeviationSheet(sentPI, intent.extras?.getStringArrayList("Emergency Contacts"), destLocation, this).show(supportFragmentManager, "newDeviationTag")
+                    val addresses: List<Address>?
+                    val geocoder = Geocoder(this, Locale.getDefault())
+                    addresses = geocoder.getFromLocation(
+                        userLocation.latitude,
+                        userLocation.longitude,
+                        1
+                    )
+                    NewDeviationSheet(sentPI, intent.extras?.getStringArrayList("Emergency Contacts"), destLocation, addresses,this).show(supportFragmentManager, "newDeviationTag")
                 }
             } else {
                 Log.d("myLog", "ON THE PATH")
