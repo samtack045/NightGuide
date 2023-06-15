@@ -9,6 +9,7 @@ import java.util.UUID
 class ContactItem(
     @ColumnInfo(name = "name") var name: String,
     @ColumnInfo(name = "number") var num: String,
+    @ColumnInfo(name = "isEmergencyContact") var isEmergencyContact: Boolean,
     @PrimaryKey(autoGenerate = true) var id: Int = 0
 )
 
