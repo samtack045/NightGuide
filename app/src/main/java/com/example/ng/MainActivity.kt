@@ -60,7 +60,6 @@ class MainActivity : AppCompatActivity(), ContactItemClickListener {
             startActivity(intent)
         }
 
-
         setRecyclerView()
     }
 

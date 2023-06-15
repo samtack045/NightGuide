@@ -14,8 +14,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.telephony.SmsManager
 import android.util.Log
-import android.view.KeyEvent
-import android.widget.TextView
+import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -73,12 +72,19 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
             startActivity(intent)
         }
 
-
-
-
-
+        binding.buEditFave.setOnClickListener {
+            val intent = Intent(this, EditFaveLocation::class.java)
+            startActivity(intent)
+        }
 
         mapFragment.getMapAsync(this)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val fave_locations = resources.getStringArray(R.array.fave_locations)
+        val arrayAdapter = ArrayAdapter(this, R.layout.fave_location_dropdown, fave_locations)
+        binding.autoCompleteTextView.setAdapter(arrayAdapter)
     }
 
     /**

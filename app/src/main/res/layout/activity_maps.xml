@@ -8,26 +8,24 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <androidx.appcompat.widget.LinearLayoutCompat
-        android:id="@+id/layoutTextBox"
-        android:layout_width="250dp"
+    <EditText
+        android:id="@+id/searchBox"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|left"
-        android:layout_margin="16dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp"
+        android:layout_marginBottom="12dp"
+        android:layout_weight="1"
+        android:background="@color/white"
+        android:hint="@string/where_do_you_want_to_go"
+        android:textColor="#000000"
+        android:textColorHint="#8C8C8C"
         android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/buRoute">
-
-        <EditText
-            android:id="@+id/searchBox"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@color/white"
-            android:hint="@string/where_do_you_want_to_go"
-            android:textColor="#000000"
-            android:textColorHint="#8C8C8C" />
-
-    </androidx.appcompat.widget.LinearLayoutCompat>
+        app:layout_constraintEnd_toStartOf="@+id/buRoute"
+        app:layout_constraintStart_toStartOf="parent"
+        app:showAsAction="always"
+        tools:visibility="visible" />
 
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/buSOS"
@@ -46,14 +44,16 @@
         android:id="@+id/buCentre"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="24dp"
         android:backgroundTint="?attr/colorPrimary"
         android:icon="@android:drawable/ic_dialog_alert"
-        app:icon="@drawable/ic_action_name"
         android:iconTint="?colorOnPrimary"
         android:padding="5dp"
         android:textColor="?colorOnPrimary"
-        app:layout_constraintTop_toBottomOf="@id/buSOS"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:icon="@drawable/ic_action_name"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/buSOS" />
 
 
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
@@ -95,21 +95,25 @@
         tools:layout_editor_absoluteY="0dp"></fragment>
 
     <Button
-        android:id="@+id/buAddFave"
+        android:id="@+id/buEditFave"
         android:layout_width="50dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
         android:layout_marginEnd="12dp"
-        android:layout_marginBottom="12dp"
-        app:icon="@drawable/ic_add_location_icon"
-        app:layout_constraintBottom_toTopOf="@+id/layoutTextBox"
-        app:layout_constraintEnd_toStartOf="@+id/buRoute" />
+        app:icon="@drawable/baseline_edit_location_alt_24"
+        app:iconTint="#FFFFFF"
+        app:iconTintMode="src_in"
+        app:layout_constraintBottom_toTopOf="@+id/searchBox"
+        app:layout_constraintEnd_toStartOf="@+id/buRoute"
+        app:layout_constraintStart_toEndOf="@+id/textInputLayout" />
 
     <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/textInputLayout"
         style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="12dp"
-        app:layout_constraintBottom_toTopOf="@+id/layoutTextBox"
+        android:layout_marginStart="24dp"
+        app:layout_constraintBottom_toTopOf="@+id/searchBox"
         app:layout_constraintEnd_toStartOf="@+id/buAddFave"
         app:layout_constraintStart_toStartOf="@+id/map">
 
@@ -118,7 +122,8 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:text="AutoCompleteTextView" />
+            android:inputType="none"
+            android:text="Preset Location" />
     </com.google.android.material.textfield.TextInputLayout>
 
 
