@@ -59,7 +59,7 @@ class MainActivity : AppCompatActivity(), ContactItemClickListener {
             intent.putExtra("Longitude", destLong)
             intent.putExtra("Address", addr)
             val nums: List<String> = contactViewModel.contactItems.value
-                //?.filter {it.isEmergencyContact}
+                ?.filter {it.isEmergencyContact}
                 ?.map {it.num}
                 ?: emptyList()
             intent.putStringArrayListExtra("Emergency Contacts", ArrayList(nums))
@@ -87,7 +87,7 @@ class MainActivity : AppCompatActivity(), ContactItemClickListener {
             intent.putExtra("Longitude", destLong)
             intent.putExtra("Address", addr)
             val nums: List<String> = contactViewModel.contactItems.value
-                //?.filter {it.isEmergencyContact}
+                ?.filter {it.isEmergencyContact}
                 ?.map {it.num}
                 ?: emptyList()
             intent.putStringArrayListExtra("Emergency Contacts", ArrayList(nums))
@@ -95,8 +95,6 @@ class MainActivity : AppCompatActivity(), ContactItemClickListener {
             sharedPreferences.edit().putBoolean("isFirstLaunch", false).apply()
         }
         setRecyclerView()
-
-
     }
 
     private fun setRecyclerView()

@@ -13,15 +13,12 @@ import android.location.LocationListener
 import android.location.LocationManager
 import android.net.Uri
 import android.os.Bundle
-import android.telephony.SmsManager
 import android.text.Editable
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import androidx.lifecycle.asLiveData
 import androidx.lifecycle.lifecycleScope
-import androidx.room.Room
 import com.example.ng.databinding.ActivityMapsBinding
 import com.example.ng.directionhelpers.FetchURL
 import com.example.ng.directionhelpers.TaskLoadedCallback
@@ -37,20 +34,15 @@ import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.Polyline
 import com.google.android.gms.maps.model.PolylineOptions
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import java.math.BigDecimal
-import java.math.RoundingMode
 import kotlinx.coroutines.launch
-import java.text.DecimalFormat
 import java.util.Locale
 import kotlin.math.*
-
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback, LocationListener {
 
     private lateinit var mMap: GoogleMap
     private lateinit var binding: ActivityMapsBinding
-    private lateinit var currentPolyline : Polyline
+    private var currentPolyline : Polyline? = null
     private val startLocation = LatLng(51.500801, -0.180550)
     private val destLocation = LatLng(51.49151686664713, -0.1939163228939211)
     private val markerPoints: ArrayList<LatLng> = ArrayList()
@@ -58,16 +50,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
     private var currDest: LatLng? = null
     private var addr = ""
     var offRoute = false
+    var routeComplete = false
 
     var currMark: Marker? = null
 
     private lateinit var mapFragment: SupportMapFragment
 
-    private var lastContacted = HashMap<String, Long>()
-
     lateinit var fusedLocationProviderClient: FusedLocationProviderClient
-
-    private lateinit var incidentPoints: MutableList<IncidentPoint>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -130,7 +119,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
         }
 
         try {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 0f, this)
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0f, this)
         } catch (e: Exception) {
             //Log.d("mylog", "EXCEPTION")
         }
@@ -182,13 +171,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
             ipdao.allPoints().collect{v ->
                 Log.d("myLog", "this is v" + v.toString())
                     m.addAll(v)
-
                 Log.d("myLog", "this is m" + m.toString())
-                //  for (p in m){
-                //Log.d("myLog", p.toString())
                 for (p in m) {
                     mMap.addMarker(MarkerOptions().position(LatLng(p.lat, p.long)).title("Incident Reported"))
-                  //  incidentPoints.add(p)
                 }
             }
         }
@@ -217,9 +202,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
         if (markerPoints.size > 0) {
             markerPoints.clear()
-            currentPolyline.remove()
             currMark?.remove()
         }
+
+        if (currentPolyline != null) {
+            currentPolyline!!.remove()
+        }
+
 
         // Adding new item to the ArrayList
         markerPoints.add(latLng)
@@ -326,9 +315,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
         return url
     }
     override fun onTaskDone(vararg values: Any?) {
-        //if (currentPolyline != null) currentPolyline.remove()
+        if (currentPolyline != null) {
+            currentPolyline!!.remove()
+        }
         currentPolyline = mMap.addPolyline((values[0] as PolylineOptions?)!!)
-
     }
 
     override fun onLocationChanged(location: Location) {
@@ -336,7 +326,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
             setMapLocation()
             mapJustLoaded = false
         }
-        Log.d("mylog", "LOCATION CHANGED")
+        Log.d("myLogger", "LOCATION CHANGED")
         val sentPI: PendingIntent = PendingIntent.getBroadcast(
             this,
             0,
@@ -344,20 +334,28 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
             PendingIntent.FLAG_IMMUTABLE
         )
         try {
+            Log.d("myLogger", "TRY STATEMENT")
             val userLocation = LatLng(location.latitude, location.longitude)
-            if (!PolyUtil.isLocationOnPath(userLocation, currentPolyline.points, true, 100.0)){
+            if (!PolyUtil.isLocationOnPath(userLocation, currentPolyline!!.points, true, 100.0)){
                 if (!offRoute) {
                     NewDeviationSheet(sentPI, intent.extras?.getStringArrayList("Emergency Contacts"), destLocation, this).show(supportFragmentManager, "newDeviationTag")
                 }
             } else {
-                Log.d("myLog", "HERE")
+                Log.d("myLog", "ON THE PATH")
                 if (currDest != null) {
-                    val currLat:Double = String.format(".1f", location.latitude).toDouble()
-                    val currLong:Double = String.format(".1f", location.longitude).toDouble()
-                    val destLat:Double = String.format("%.1f", currDest!!.latitude).toDouble()
-                    val destLong:Double = String.format(".1f", currDest!!.longitude).toDouble()
+                    val currLat:Double = String.format("%.2f", location.latitude).toDouble()
+                    val currLong:Double = String.format("%.2f", location.longitude).toDouble()
+                    val destLat:Double = String.format("%.2f", currDest!!.latitude).toDouble()
+                    val destLong:Double = String.format("%.2f", currDest!!.longitude).toDouble()
+                    Log.d("myLogger", "currLat $currLat")
+                    Log.d("myLogger", "currLong $currLong")
+                    Log.d("myLogger", "destLat $destLat")
+                    Log.d("myLogger", "destLong$destLong")
+
                     if (currLat == destLat && currLong == destLong) {
-                        RouteCompleteSheet(sentPI, intent.extras?.getStringArrayList("Emergency Contacts")).show(supportFragmentManager, "newDeviationTag")
+                        if (!routeComplete) {
+                            RouteCompleteSheet(sentPI, intent.extras?.getStringArrayList("Emergency Contacts"), this).show(supportFragmentManager, "newDeviationTag")
+                        }
                     }
                 }
             }

@@ -20,37 +20,17 @@ import kotlinx.coroutines.launch
 class ReportIncidentSheet(var latLng: LatLng, var mapsActivity: MapsActivity, var ipDao: IPDao) : BottomSheetDialogFragment() {
 
     private lateinit var binding: FragmentReportIncidentBinding
-    //private lateinit var contactViewModel: ContactViewModel
-    //private var notifyInEmer: Boolean = false
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val activity = requireActivity()
 
-//        if (contactItem != null) {
-//            binding.contactTitle.text = "Edit contact"
-//            val editable = Editable.Factory.getInstance()
-//            binding.name.text = editable.newEditable(contactItem!!.name)
-//            binding.phoneNum.text = editable.newEditable(contactItem!!.num)
-//            //binding.isEmergencyContact.isChecked = contactItem!!.isEmergencyContact
-//            //notifyInEmer = contactItem!!.isEmergencyContact
-//        } else {
-//            binding.contactTitle.text = "New Contact"
-//        }
-
-      //  contactViewModel = ViewModelProvider(activity)[ContactViewModel::class.java]
-
-//        binding.isEmergencyContact.setOnCheckedChangeListener { _, _ ->
-//            notifyInEmer = !notifyInEmer
-//        }
         binding.butReport.setOnClickListener {
             reportAction()
         }
         binding.butCancel.setOnClickListener {
             cancelAction()
         }
-
-
     }
 
     override fun onCreateView(
@@ -73,9 +53,4 @@ class ReportIncidentSheet(var latLng: LatLng, var mapsActivity: MapsActivity, va
         }
         dismiss()
     }
-
-
-
-
-
 }
