@@ -350,6 +350,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
                     NewDeviationSheet(sentPI, intent.extras?.getStringArrayList("Emergency Contacts"), destLocation, this).show(supportFragmentManager, "newDeviationTag")
                 }
             } else {
+                Log.d("myLog", "HERE")
                 if (currDest != null) {
                     val currLat:Double = String.format(".1f", location.latitude).toDouble()
                     val currLong:Double = String.format(".1f", location.longitude).toDouble()

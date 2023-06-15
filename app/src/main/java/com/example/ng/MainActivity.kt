@@ -2,6 +2,7 @@ package com.example.ng
 
 import android.Manifest
 import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Address
@@ -75,8 +76,27 @@ class MainActivity : AppCompatActivity(), ContactItemClickListener {
             startActivity(intent)
         }
 
+        val sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+        val isFirstLaunch = sharedPreferences.getBoolean("isFirstLaunch", true)
 
+        if (isFirstLaunch) {
+            val intent = Intent(this, MapsActivity::class.java)
+            Log.d("myLo", "Main" + destLat.toString())
+            Log.d("myLo", "Main" + destLong.toString())
+            intent.putExtra("Latitude", destLat)
+            intent.putExtra("Longitude", destLong)
+            intent.putExtra("Address", addr)
+            val nums: List<String> = contactViewModel.contactItems.value
+                //?.filter {it.isEmergencyContact}
+                ?.map {it.num}
+                ?: emptyList()
+            intent.putStringArrayListExtra("Emergency Contacts", ArrayList(nums))
+            startActivity(intent)
+            sharedPreferences.edit().putBoolean("isFirstLaunch", false).apply()
+        }
         setRecyclerView()
+
+
     }
 
     private fun setRecyclerView()
