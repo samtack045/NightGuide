@@ -41,6 +41,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import java.math.BigDecimal
 import java.math.RoundingMode
 import kotlinx.coroutines.launch
+import java.text.DecimalFormat
 import java.util.Locale
 import kotlin.math.*
 
@@ -128,7 +129,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
             return
         }
 
-
         try {
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 0f, this)
         } catch (e: Exception) {
@@ -155,8 +155,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
 
         val lat = intent.extras?.getDouble("Latitude") ?: 100.0
         val long = intent.extras?.getDouble("Longitude") ?: 100.0
-        Log.d("myLo", "Maps before dest" + lat.toString())
-        Log.d("myLo", "Maps before dest" + long.toString())
+        Log.d("myLo", "Maps before dest$lat")
+        Log.d("myLo", "Maps before dest$long")
         if (!(lat == 100.0 && long == 100.0)) {
             currDest = LatLng(lat, long)
             Log.d("myLog", "route set")
@@ -169,14 +169,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
             binding.searchBox.text = editable.newEditable(destAddress)
         }
 
-
         mMap.setOnMapClickListener {
             val d1 = ContactItemDatabase.getDatabase(applicationContext)
             val ipdao = d1.IPDao()
             ReportIncidentSheet(it, this, ipdao).show(supportFragmentManager, "newReportIncidentTag")
         }
-
-        //val db = Room.databaseBuilder(applicationContext, ContactItemDatabase::class.java, "contact_item_database")
 
         val d1 = ContactItemDatabase.getDatabase(applicationContext)
         val ipdao = d1.IPDao()
@@ -195,10 +192,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
                 }
             }
         }
-
-
-
-
     }
 
     @SuppressLint("MissingPermission")
@@ -218,9 +211,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
             }
         }
     }
-
-
-
 
     @SuppressLint("MissingPermission")
     fun setARoute(latLng: LatLng){
@@ -272,7 +262,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
                         PendingIntent.FLAG_IMMUTABLE
                     )
 
-
                     val url = getUrl(origin, dest)
                     val t = this
                     lifecycleScope.launch{
@@ -288,8 +277,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
                             val fetchUrl = FetchURL(t, badPoints)
                             fetchUrl.execute(url, "walking")
                         }
-
-
                     }
                 }
                 // Use the latitude and longitude as needed
@@ -365,18 +352,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
             } else {
                 Log.d("myLog", "HERE")
                 if (currDest != null) {
-                    Log.d("myLog", "HERE1")
-                    Log.d("myLog", "latcurrDest" + currDest!!.latitude.toString())
-                    val latcurrrounded:Double = String.format("%.1f", currDest!!.latitude).toDouble()
-                    val latlocrounded:Double = String.format("%.1f", location.latitude).toDouble()
-                    Log.d("myLog", latcurrrounded.toString())
-                    Log.d("myLog", latlocrounded.toString())
-                    if (latcurrrounded == latlocrounded) {
-                        Log.d("myLog", "HERE2")
-                        Toast.makeText(this, "You have reached your destination!", Toast.LENGTH_SHORT).show()
-                        intent.extras?.getStringArrayList("Emergency Contacts")?.forEach{
-                            SmsManager.getDefault().sendTextMessage(it, null, "I have reached my destination", sentPI, null)
-                        }
+                    val currLat:Double = String.format(".1f", location.latitude).toDouble()
+                    val currLong:Double = String.format(".1f", location.longitude).toDouble()
+                    val destLat:Double = String.format("%.1f", currDest!!.latitude).toDouble()
+                    val destLong:Double = String.format(".1f", currDest!!.longitude).toDouble()
+                    if (currLat == destLat && currLong == destLong) {
+                        RouteCompleteSheet(sentPI, intent.extras?.getStringArrayList("Emergency Contacts")).show(supportFragmentManager, "newDeviationTag")
                     }
                 }
             }
