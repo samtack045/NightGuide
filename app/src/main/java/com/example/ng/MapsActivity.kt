@@ -16,6 +16,7 @@ import android.os.Bundle
 import android.telephony.SmsManager
 import android.text.Editable
 import android.util.Log
+import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -95,6 +96,20 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
             intent.data = Uri.parse("tel:" + Uri.encode("123"))
             startActivity(intent)
         }
+
+        binding.buEditFave.setOnClickListener {
+            val intent = Intent(this, EditFaveLocation::class.java)
+            startActivity(intent)
+        }
+
+        mapFragment.getMapAsync(this)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val fave_locations = resources.getStringArray(R.array.fave_locations)
+        val arrayAdapter = ArrayAdapter(this, R.layout.fave_location_dropdown, fave_locations)
+        binding.autoCompleteTextView.setAdapter(arrayAdapter)
     }
 
     /**

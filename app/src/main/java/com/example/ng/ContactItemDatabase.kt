@@ -9,6 +9,7 @@ import androidx.room.RoomDatabase
 abstract class ContactItemDatabase: RoomDatabase() {
 
     abstract fun contactItemDao(): ContactItemDao
+    abstract fun faveLocationDao() : FaveLocationDao
 
     abstract fun IPDao(): IPDao
 
