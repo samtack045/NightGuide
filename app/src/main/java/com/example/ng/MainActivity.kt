@@ -38,6 +38,7 @@ class MainActivity : AppCompatActivity(), ContactItemClickListener {
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
+        Log.d("myLog", "creating main...")
         destLat = intent.extras?.getDouble("Latitude")?: 100.0
         destLong = intent.extras?.getDouble("Longitude")?: 100.0
         addr = intent.extras?.getString("Address")?: ""
@@ -95,6 +96,7 @@ class MainActivity : AppCompatActivity(), ContactItemClickListener {
             sharedPreferences.edit().putBoolean("isFirstLaunch", false).apply()
         }
         setRecyclerView()
+        Log.d("myLog", "creating main finished...")
     }
 
     private fun setRecyclerView()

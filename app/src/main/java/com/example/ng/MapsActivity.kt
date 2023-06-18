@@ -43,7 +43,7 @@ import kotlinx.coroutines.runBlocking
 import java.util.Locale
 import kotlin.math.*
 
-class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback, LocationListener, FaveLocationClickListener {
+class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback, LocationListener{
 
     private lateinit var mMap: GoogleMap
     private lateinit var binding: ActivityMapsBinding
@@ -64,6 +64,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
     lateinit var fusedLocationProviderClient: FusedLocationProviderClient
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        Log.d("myLog", "creating map...")
         super.onCreate(savedInstanceState)
 
         binding = ActivityMapsBinding.inflate(layoutInflater)
@@ -90,56 +91,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
             startActivity(intent)
         }
 
-        val d1 = ContactItemDatabase.getDatabase(applicationContext)
-        val dao = d1.faveLocationDao()
-        val mapsActivity = this
-        binding.buEditFave.setOnClickListener {
-
-            fun editFave() = runBlocking {
-
-                val len = dao.allFaveLocationItems().count()
-
-                if (len == 0) {
-                    NewFaveLocationSheet(null, mapsActivity).show(supportFragmentManager, "newHomeTag")
-                } else {
-                    dao.allFaveLocationItems().collect { list ->
-                        NewFaveLocationSheet(list.first(), mapsActivity).show(
-                            supportFragmentManager,
-                            "editHomeTag"
-                        )
-                    }
-                }
-            }
-            editFave()
-        }
-
-        binding.buHome.setOnClickListener {
-            fun home() = runBlocking {
-                dao.allFaveLocationItems().collect { list ->
-                    val home = list.first()
-                    val addresses: List<Address>?
-                    val geocoder = Geocoder(mapsActivity, Locale.getDefault())
-                    addresses = geocoder.getFromLocation(
-                        home.latitude,
-                        home.longitude,
-                        1
-                    )
-                    val address = addresses!![0].getAddressLine(0)
-                    binding.searchBox.text = SpannableStringBuilder.valueOf(address)
-                }
-            }
-            home()
-        }
-
         mapFragment.getMapAsync(this)
     }
-
-//    override fun onResume() {
-//        super.onResume()
-//        val fave_locations = resources.getStringArray(R.array.fave_locations)
-//        val arrayAdapter = ArrayAdapter(this, R.layout.fave_location_dropdown, fave_locations)
-//        binding.autoCompleteTextView.setAdapter(arrayAdapter)
-//    }
 
     /**
      * Manipulates the map once available.
@@ -192,6 +145,63 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
 
         binding.buCentre.setOnClickListener {
             setMapLocation()
+        }
+
+        val d2 = ContactItemDatabase.getDatabase(applicationContext)
+        val homeLocationDao = d2.homeLocationDao()
+        val mapsActivity = this
+        binding.buEditFave.setOnClickListener {
+            lifecycleScope.launch {
+                Log.d("myLog", "edit button pressed")
+                val homeList = mutableListOf<HomeItem>()
+                homeLocationDao.allHomeLocationItems().collect { v ->
+                    homeList.addAll(v)
+                    val len = homeList.size
+                    Log.d("myLog", len.toString())
+                    if (len == 0) {
+                        Log.d("myLog", "LIST WAS EMPTY. NEW ENTRY:")
+                        NewHomeLocationSheet(null, mapsActivity, homeLocationDao).show(
+                            supportFragmentManager,
+                            "newHomeTag"
+                        )
+                    } else {
+                        Log.d("myLog", "LIST NOT EMPTY! EDIT ENTRY:")
+                        NewHomeLocationSheet(
+                            homeList[0],
+                            mapsActivity,
+                            homeLocationDao
+                        ).show(
+                            supportFragmentManager,
+                            "editHomeTag"
+                        )
+                    }
+                }
+            }
+
+        }
+
+        binding.buHome.setOnClickListener {
+            lifecycleScope.launch {
+                Log.d("myLog", "contact hit" + "going home")
+                val homeList = mutableListOf<HomeItem>()
+                Log.d("myLog", "life")
+                homeLocationDao.allHomeLocationItems().collect { v ->
+                    homeList.addAll(v)
+                }
+                if (!homeList.isEmpty()) {
+                    Log.d("myLog", "life")
+                    val home = homeList.first()
+//                    val addresses: List<Address>?
+//                    val geocoder = Geocoder(mapsActivity, Locale.getDefault())
+//                    addresses = geocoder.getFromLocation(
+//                        home.latitude,
+//                        home.longitude,
+//                        1
+//                    )
+//                    val address = addresses!![0].getAddressLine(0)
+                    binding.searchBox.text = SpannableStringBuilder.valueOf(home!!.location)
+                }
+            }
         }
 
         // Enable the user's current location on the map
@@ -391,7 +401,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
         try {
             Log.d("myLogger", "TRY STATEMENT")
             val userLocation = LatLng(location.latitude, location.longitude)
-            if (!PolyUtil.isLocationOnPath(userLocation, currentPolyline!!.points, true, 100.0)){
+            if (!PolyUtil.isLocationOnPath(userLocation, currentPolyline!!.points, true, 50.0)){
                 if (!offRoute) {
                     val addresses: List<Address>?
                     val geocoder = Geocoder(this, Locale.getDefault())
@@ -435,10 +445,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
             results
         )
         return results[0]
-    }
-
-    override fun editFaveLocation(faveLocationItem: FaveLocationItem) {
-        NewFaveLocationSheet(faveLocationItem, this).show(supportFragmentManager, "newHomeTag")
     }
 
 }
