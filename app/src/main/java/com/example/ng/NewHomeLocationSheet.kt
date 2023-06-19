@@ -25,39 +25,24 @@ class NewHomeLocationSheet(var homeItem: HomeItem?, var mapsActivity: AppCompatA
     private lateinit var binding: FragmentNewHomeLocationSheetBinding
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        lifecycleScope.launch {
-            super.onViewCreated(view, savedInstanceState)
-            val activity = requireActivity()
-            Log.d("myLog", "IN faveLocationSheet")
+        super.onViewCreated(view, savedInstanceState)
+        val activity = requireActivity()
+        Log.d("myLog", "IN faveLocationSheet")
 
-            if (homeItem != null) {
-                Log.d("myLog", "New entry:")
+        if (homeItem != null) {
+            Log.d("myLog", "New entry:")
 
-                val editable = Editable.Factory.getInstance()
-//                val addresses: List<Address>?
-//                val geocoder = Geocoder(mapsActivity, Locale.getDefault())
-                Log.d("myLog", homeItem!!.location)
-
-//                addresses = geocoder.getFromLocation(
-//                    faveLocationItem!!.latitude,
-//                    faveLocationItem!!.longitude,
-//                    1
-//                )
-//                if (addresses == null) {
-//                    Log.d("myLog", "NULL")
-//                }
-//                Log.d("myLog", addresses.toString())
-//                val address = addresses!![0].getAddressLine(0)
-                binding.editTextLocation.text = editable.newEditable(homeItem!!.location)
-            }
+            val editable = Editable.Factory.getInstance()
+            Log.d("myLog", homeItem!!.location)
+            binding.editTextLocation.text = editable.newEditable(homeItem!!.location)
+        }
 
 
-            binding.buSave.setOnClickListener {
-                saveAction()
-            }
-            binding.buBack.setOnClickListener {
-                backAction()
-            }
+        binding.buSave.setOnClickListener {
+            saveAction()
+        }
+        binding.buBack.setOnClickListener {
+            backAction()
         }
     }
 
@@ -76,27 +61,18 @@ class NewHomeLocationSheet(var homeItem: HomeItem?, var mapsActivity: AppCompatA
     }
 
     fun saveAction() {
-        lifecycleScope.launch {
         val location = binding.editTextLocation.text.toString()
-        val geocode = Geocoder(mapsActivity, Locale.getDefault())
-//        val addList = geocode.getFromLocationName(location, 1)
-//        val latitude = addList?.get(0)?.latitude!!
-//        val longitude = addList[0]?.longitude!!
-        if (homeItem == null) {
-//            val newFaveLocation = FaveLocationItem(latitude, longitude)
+        lifecycleScope.launch {
+            if (homeItem == null) {
                 Log.d("myLog", "inserting")
                 homeLocationDao.insertHomeLocation(HomeItem(location))
-//            faveLocationViewModel.addFaveLocationItem(newFaveLocation)
             } else {
-//                faveLocationItem!!.latitude = latitude
-//                faveLocationItem!!.longitude = longitude
                 homeItem!!.location = location
-                lifecycleScope.launch {
-                    homeLocationDao.updateHomeLocation(homeItem!!)
-                }
+                homeLocationDao.updateHomeLocation(homeItem!!)
             }
-//        binding.editTextLocation.setText("")
-            dismiss()
         }
+        binding.editTextLocation.setText("")
+        Log.d("myLog", "dismissing")
+        dismiss()
     }
 }
