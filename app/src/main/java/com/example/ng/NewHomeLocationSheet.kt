@@ -68,7 +68,9 @@ class NewHomeLocationSheet(var homeItem: HomeItem?, var mapsActivity: AppCompatA
                 homeLocationDao.insertHomeLocation(HomeItem(location))
             } else {
                 homeItem!!.location = location
-                homeLocationDao.updateHomeLocation(homeItem!!)
+                val x = homeItem!!
+                //Log.d("myLog", )
+                homeLocationDao.updateHomeLocation(x)
             }
         }
         binding.editTextLocation.setText("")

@@ -92,6 +92,42 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
             startActivity(intent)
         }
 
+
+        val d2 = ContactItemDatabase.getDatabase(applicationContext)
+        val homeLocationDao = d2.homeLocationDao()
+        val mapsActivity = this
+
+
+        binding.buEditHome.setOnClickListener {
+            Log.d("myLog", "edit button pressed")
+            var home : HomeItem? = null
+            var len = 0
+            lifecycleScope.launch {
+                homeLocationDao.allHomeLocationItems().collect { v ->
+                    home = v
+                    Log.d("myLog", len.toString())
+                    if (home == null) {
+                        Log.d("myLog", "HOME NOT SET. NEW ENTRY:")
+                        NewHomeLocationSheet(null, mapsActivity, homeLocationDao).show(
+                            supportFragmentManager,
+                            "newHomeTag"
+                        )
+                    } else {
+                        Log.d("myLog", "LIST NOT EMPTY! EDIT ENTRY:")
+                        NewHomeLocationSheet(
+                            home,
+                            mapsActivity,
+                            homeLocationDao
+                        ).show(
+                            supportFragmentManager,
+                            "editHomeTag"
+                        )
+                    }
+                }
+            }
+
+        }
+
         mapFragment.getMapAsync(this)
     }
 
@@ -152,34 +188,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
         val homeLocationDao = d2.homeLocationDao()
         val mapsActivity = this
 
-        binding.buEditHome.setOnClickListener {
-            Log.d("myLog", "edit button pressed")
-            val homeList = mutableListOf<HomeItem>()
-            lifecycleScope.launch {
-                homeLocationDao.allHomeLocationItems().collect { v ->
-                    homeList.addAll(v)
-                }
-            }
-            val len = homeList.size
-            Log.d("myLog", len.toString())
-            if (len == 0) {
-                Log.d("myLog", "LIST WAS EMPTY. NEW ENTRY:")
-                NewHomeLocationSheet(null, mapsActivity, homeLocationDao).show(
-                    supportFragmentManager,
-                    "newHomeTag"
-                )
-            } else {
-                Log.d("myLog", "LIST NOT EMPTY! EDIT ENTRY:")
-                NewHomeLocationSheet(
-                    homeList[0],
-                    mapsActivity,
-                    homeLocationDao
-                ).show(
-                    supportFragmentManager,
-                    "editHomeTag"
-                )
-            }
-        }
+
 
         binding.buHome.setOnClickListener {
                 Log.d("myLog", "going home")
@@ -187,7 +196,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
                 Log.d("myLog", "life")
             lifecycleScope.launch {
                 homeLocationDao.allHomeLocationItems().collect { v ->
-                    homeList.addAll(v)
+                    homeList.add(v)
                     Log.d("myLog", "TESTETESTS")
                     Log.d("myLog", "length: " + homeList.size.toString())
                     if (!homeList.isEmpty()) {

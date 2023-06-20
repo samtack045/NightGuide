@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.Flow
 interface HomeLocationDao {
 
     @Query("SELECT * FROM home_location_table ORDER BY id ASC")
-    fun allHomeLocationItems(): Flow<List<HomeItem>>
+    fun allHomeLocationItems(): Flow<HomeItem>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertHomeLocation(homeLocationItem: HomeItem)
