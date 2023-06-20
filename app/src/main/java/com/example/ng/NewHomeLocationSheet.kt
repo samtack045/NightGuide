@@ -1,5 +1,6 @@
 package com.example.ng
 
+import android.content.DialogInterface
 import android.location.Geocoder
 import android.os.Bundle
 import android.text.Editable
@@ -20,7 +21,7 @@ import java.util.Locale
  * Use the [NewFaveLocationSheet.newInstance] factory method to
  * create an instance of this fragment.
  */
-class NewHomeLocationSheet(var homeItem: HomeItem?, var mapsActivity: AppCompatActivity, var homeLocationDao: HomeLocationDao) : BottomSheetDialogFragment() {
+class NewHomeLocationSheet(var homeItem: HomeItem?, var mapsActivity: MapsActivity, var homeLocationDao: HomeLocationDao) : BottomSheetDialogFragment() {
 
     private lateinit var binding: FragmentNewHomeLocationSheetBinding
 
@@ -54,6 +55,11 @@ class NewHomeLocationSheet(var homeItem: HomeItem?, var mapsActivity: AppCompatA
         // Inflate the layout for this fragment
         binding = FragmentNewHomeLocationSheetBinding.inflate(inflater, container, false)
         return binding.root
+    }
+
+    override fun onDismiss(dialog: DialogInterface) {
+        super.onDismiss(dialog)
+        mapsActivity.editHome = false
     }
 
     fun backAction() {

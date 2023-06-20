@@ -38,9 +38,12 @@ import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.Polyline
 import com.google.android.gms.maps.model.PolylineOptions
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import java.util.Locale
 import kotlin.math.*
 
@@ -57,6 +60,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
     private var addr = ""
     var offRoute = false
     var routeComplete = false
+
+    var editHome = false
 
     var currMark: Marker? = null
 
@@ -102,26 +107,34 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
             Log.d("myLog", "edit button pressed")
             var home : HomeItem? = null
             var len = 0
-            lifecycleScope.launch {
-                homeLocationDao.allHomeLocationItems().collect { v ->
-                    home = v
-                    Log.d("myLog", len.toString())
-                    if (home == null) {
-                        Log.d("myLog", "HOME NOT SET. NEW ENTRY:")
-                        NewHomeLocationSheet(null, mapsActivity, homeLocationDao).show(
-                            supportFragmentManager,
-                            "newHomeTag"
-                        )
-                    } else {
-                        Log.d("myLog", "LIST NOT EMPTY! EDIT ENTRY:")
-                        NewHomeLocationSheet(
-                            home,
-                            mapsActivity,
-                            homeLocationDao
-                        ).show(
-                            supportFragmentManager,
-                            "editHomeTag"
-                        )
+            CoroutineScope(Dispatchers.Main).launch {
+                withContext(Dispatchers.IO) {
+                    homeLocationDao.allHomeLocationItems().collect { v ->
+                        home = v
+                        Log.d("myLog", len.toString())
+                        if (home == null) {
+                            Log.d("myLog", "HOME NOT SET. NEW ENTRY:")
+                            if (!editHome) {
+                                editHome = true
+                                NewHomeLocationSheet(null, mapsActivity, homeLocationDao).show(
+                                    supportFragmentManager,
+                                    "newHomeTag"
+                                )
+                            }
+                        } else {
+                            Log.d("myLog", "LIST NOT EMPTY! EDIT ENTRY:")
+                            if (!editHome) {
+                                editHome = true
+                                NewHomeLocationSheet(
+                                    home,
+                                    mapsActivity,
+                                    homeLocationDao
+                                ).show(
+                                    supportFragmentManager,
+                                    "editHomeTag"
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -247,6 +260,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
                 }
             }
         }
+
     }
 
     @SuppressLint("MissingPermission")
