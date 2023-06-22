@@ -5,10 +5,12 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = [ContactItem::class, IncidentPoint::class], version = 2)
+@Database(entities = [ContactItem::class, IncidentPoint::class, HomeItem::class], version = 7)
+
 abstract class ContactItemDatabase: RoomDatabase() {
 
     abstract fun contactItemDao(): ContactItemDao
+    abstract fun homeLocationDao() : HomeLocationDao
 
     abstract fun IPDao(): IPDao
 

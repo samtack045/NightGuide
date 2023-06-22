@@ -10,6 +10,7 @@ import android.location.Geocoder
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.telephony.SmsManager
 import android.util.Log
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
@@ -71,29 +72,56 @@ class MainActivity : AppCompatActivity(), ContactItemClickListener {
         }
 
         binding.butSOS.setOnClickListener {
+            val sentPI: PendingIntent = PendingIntent.getBroadcast(
+                this,
+                0,
+                Intent("SMS_SENT"),
+                PendingIntent.FLAG_IMMUTABLE
+            )
+            val nums: List<String> = contactViewModel.contactItems.value
+                ?.filter {it.isEmergencyContact}
+                ?.map {it.num}
+                ?: emptyList()
+            nums.forEach {
+                SmsManager.getDefault().sendTextMessage(it, null, "I have called the police", sentPI, null)
+            }
             val intent = Intent(Intent.ACTION_CALL)
             intent.data = Uri.parse("tel:" + Uri.encode("123"))
             startActivity(intent)
         }
 
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                this, Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 101)
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION), 101)
+        }
+
+
         val sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
         val isFirstLaunch = sharedPreferences.getBoolean("isFirstLaunch", true)
 
-        if (isFirstLaunch) {
-            val intent = Intent(this, MapsActivity::class.java)
-            Log.d("myLo", "Main" + destLat.toString())
-            Log.d("myLo", "Main" + destLong.toString())
-            intent.putExtra("Latitude", destLat)
-            intent.putExtra("Longitude", destLong)
-            intent.putExtra("Address", addr)
-            val nums: List<String> = contactViewModel.contactItems.value
-                ?.filter {it.isEmergencyContact}
-                ?.map {it.num}
-                ?: emptyList()
-            intent.putStringArrayListExtra("Emergency Contacts", ArrayList(nums))
-            startActivity(intent)
-            sharedPreferences.edit().putBoolean("isFirstLaunch", false).apply()
+//        if (isFirstLaunch) {
+//            val intent = Intent(this, MapsActivity::class.java)
+//            Log.d("myLo", "Main" + destLat.toString())
+//            Log.d("myLo", "Main" + destLong.toString())
+//            intent.putExtra("Latitude", destLat)
+//            intent.putExtra("Longitude", destLong)
+//            intent.putExtra("Address", addr)
+//            val nums: List<String> = contactViewModel.contactItems.value
+//                ?.filter {it.isEmergencyContact}
+//                ?.map {it.num}
+//                ?: emptyList()
+//            intent.putStringArrayListExtra("Emergency Contacts", ArrayList(nums))
+//            startActivity(intent)
+//        }
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.SEND_SMS), 101)
         }
+
+        //sharedPreferences.edit().putBoolean("isFirstLaunch", true).apply()
         setRecyclerView()
     }
 

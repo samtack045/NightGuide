@@ -17,7 +17,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.coroutines.launch
 
 
-class ReportIncidentSheet(var latLng: LatLng, var mapsActivity: MapsActivity, var ipDao: IPDao) : BottomSheetDialogFragment() {
+class ReportIncidentSheet(val latLng: LatLng, var mapsActivity: MapsActivity, var ipDao: IPDao) : BottomSheetDialogFragment() {
 
     private lateinit var binding: FragmentReportIncidentBinding
 
@@ -48,7 +48,9 @@ class ReportIncidentSheet(var latLng: LatLng, var mapsActivity: MapsActivity, va
     private fun reportAction() {
         mapsActivity.getMap().addMarker(MarkerOptions().position(latLng).title("Incident Reported"))
         lifecycleScope.launch{
+            Log.d("myLog", "here" + IncidentPoint(latLng.latitude, latLng.longitude).toString())
             ipDao.insertIP(IncidentPoint(latLng.latitude, latLng.longitude))
+            Log.d("myLog", latLng.longitude.toString())
             Log.d("myLog", "this is the db" + ipDao.allPoints().asLiveData().value.toString())
         }
         dismiss()

@@ -14,11 +14,14 @@ import android.location.LocationListener
 import android.location.LocationManager
 import android.net.Uri
 import android.os.Bundle
+import android.telephony.SmsManager
 import android.text.Editable
 import android.util.Log
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.lifecycleScope
 import com.example.ng.databinding.ActivityMapsBinding
 import com.example.ng.directionhelpers.FetchURL
@@ -35,7 +38,11 @@ import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.Polyline
 import com.google.android.gms.maps.model.PolylineOptions
+import com.google.maps.android.SphericalUtil
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.Locale
 import kotlin.math.*
 
@@ -44,8 +51,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
     private lateinit var mMap: GoogleMap
     private lateinit var binding: ActivityMapsBinding
     private var currentPolyline : Polyline? = null
-    private val startLocation = LatLng(51.500801, -0.180550)
-    private val destLocation = LatLng(51.49151686664713, -0.1939163228939211)
     private val markerPoints: ArrayList<LatLng> = ArrayList()
     private var mapJustLoaded = true
     private var currDest: LatLng? = null
@@ -53,11 +58,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
     var offRoute = false
     var routeComplete = false
 
-    var currMark: Marker? = null
+    private var currMark: Marker? = null
 
     private lateinit var mapFragment: SupportMapFragment
 
-    lateinit var fusedLocationProviderClient: FusedLocationProviderClient
+    private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
+
+    var editHome = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -68,9 +75,55 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
+
+        val d2 = ContactItemDatabase.getDatabase(applicationContext)
+        val homeLocationDao = d2.homeLocationDao()
+        val mapsActivity = this
+
+
+        binding.buEditHome.setOnClickListener {
+            Log.d("myLog", "edit button pressed")
+            var home : HomeItem? = null
+            var len = 0
+            CoroutineScope(Dispatchers.Main).launch {
+                withContext(Dispatchers.IO) {
+                    homeLocationDao.allHomeLocationItems().collect { v ->
+                        home = v
+                        Log.d("myLog", len.toString())
+                        if (home == null) {
+                            Log.d("myLog", "HOME NOT SET. NEW ENTRY:")
+                            if (!editHome) {
+                                editHome = true
+                                NewHomeLocationSheet(null, mapsActivity, homeLocationDao).show(
+                                    supportFragmentManager,
+                                    "newHomeTag"
+                                )
+                            }
+                        } else {
+                            Log.d("myLog", "LIST NOT EMPTY! EDIT ENTRY:")
+                            if (!editHome) {
+                                editHome = true
+                                NewHomeLocationSheet(
+                                    home,
+                                    mapsActivity,
+                                    homeLocationDao
+                                ).show(
+                                    supportFragmentManager,
+                                    "editHomeTag"
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+        }
         mapFragment.getMapAsync(this)
 
         binding.contactsPageButton.setOnClickListener {
+            val sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+          //  val isFirstLaunch = sharedPreferences.getBoolean("isFirstLaunch", true)
+            sharedPreferences.edit().putBoolean("isFirstLaunch", false).apply()
             val intent = Intent(this, MainActivity::class.java)
             Log.d("myLo", "contact hit" + (currDest?.latitude?:100.0).toString())
             Log.d("myLo", "contact hit" + (currDest?.latitude?:100.0).toString())
@@ -81,6 +134,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
         }
 
         binding.buSOS.setOnClickListener {
+            val sentPI: PendingIntent = PendingIntent.getBroadcast(
+                this,
+                0,
+                Intent("SMS_SENT"),
+                PendingIntent.FLAG_IMMUTABLE
+            )
+            intent.extras?.getStringArrayList("Emergency Contacts")?.forEach {
+                SmsManager.getDefault().sendTextMessage(it, null, "I have called the police", sentPI, null)
+            }
             val intent = Intent(Intent.ACTION_CALL)
             intent.data = Uri.parse("tel:" + Uri.encode("123"))
             startActivity(intent)
@@ -101,22 +163,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
-        Log.d("myLog", "map ready")
         mMap = googleMap
         val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED){
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CALL_PHONE), 101)
-        }
-
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-            != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                this, Manifest.permission.ACCESS_COARSE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 101)
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION), 101)
-            return
         }
 
         try {
@@ -128,10 +179,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
         binding.buRoute.setOnClickListener {
             addr = binding.searchBox.text.toString()
             if (addr != "") {
-                val geocode = Geocoder(this, Locale.getDefault())
-                val addList = geocode.getFromLocationName(addr, 1)
-                val latLng = LatLng(addList?.get(0)?.latitude!!, addList[0]?.longitude!!)
-                setARoute(latLng)
+                try {
+                    val geocode = Geocoder(this, Locale.getDefault())
+                    val addList = geocode.getFromLocationName(addr, 1)
+                    val latLng = LatLng(addList?.get(0)?.latitude!!, addList[0]?.longitude!!)
+                    setARoute(latLng)
+                } catch (e: Exception) {
+                    val editable = Editable.Factory.getInstance()
+                    binding.searchBox.text = editable.newEditable("Enter a valid address")
+                }
             }
             setMapLocation()
         }
@@ -139,6 +195,29 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
         binding.buCentre.setOnClickListener {
             setMapLocation()
         }
+
+        val d2 = ContactItemDatabase.getDatabase(applicationContext)
+        val homeLocationDao = d2.homeLocationDao()
+
+        binding.buHome.setOnClickListener {
+            Log.d("myLog", "going home")
+            val homeList = mutableListOf<HomeItem>()
+            Log.d("myLog", "life")
+            lifecycleScope.launch {
+                homeLocationDao.allHomeLocationItems().collect { v ->
+                    homeList.add(v)
+                    Log.d("myLog", "TESTETESTS")
+                    Log.d("myLog", "length: " + homeList.size.toString())
+                    if (!homeList.isEmpty()) {
+                        val home = homeList.first()
+                        Log.d("myLog", "THIS:")
+                        Log.d("myLog", home!!.location)
+                        binding.searchBox.setText(home!!.location, TextView.BufferType.EDITABLE)
+                    }
+                }
+            }
+        }
+
 
         // Enable the user's current location on the map
         mMap.isMyLocationEnabled = true
@@ -160,6 +239,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
         }
 
         mMap.setOnMapClickListener {
+            val latLng = it
             val d1 = ContactItemDatabase.getDatabase(applicationContext)
             val ipdao = d1.IPDao()
             ReportIncidentSheet(it, this, ipdao).show(supportFragmentManager, "newReportIncidentTag")
@@ -171,9 +251,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
         lifecycleScope.launch{
             ipdao.allPoints().collect{v ->
                 Log.d("myLog", "this is v" + v.toString())
-                    m.addAll(v)
+                m.addAll(v)
                 Log.d("myLog", "this is m" + m.toString())
                 for (p in m) {
+                    Log.d("myLog", "hello" + p.toString())
                     mMap.addMarker(MarkerOptions().position(LatLng(p.lat, p.long)).title("Incident Reported"))
                 }
             }
@@ -204,12 +285,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
         if (markerPoints.size > 0) {
             markerPoints.clear()
             currMark?.remove()
-        }
-
-        if (currentPolyline != null) {
             currentPolyline!!.remove()
-        }
 
+        }
 
         // Adding new item to the ArrayList
         markerPoints.add(latLng)
@@ -245,12 +323,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
                     currDest = dest
 
                     // Getting URL to the Google Directions API
-                    val sentPI: PendingIntent = PendingIntent.getBroadcast(
-                        this,
-                        0,
-                        Intent("SMS_SENT"),
-                        PendingIntent.FLAG_IMMUTABLE
-                    )
 
                     val url = getUrl(origin, dest)
                     val t = this
@@ -292,12 +364,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
     }
 
     private fun getUrl(startLocation: LatLng, destLocation: LatLng): String {
-        val sentPI: PendingIntent = PendingIntent.getBroadcast(
-            this,
-            0,
-            Intent("SMS_SENT"),
-            PendingIntent.FLAG_IMMUTABLE
-        )
 
         val key = "AIzaSyAPoL0l_feaQrdNAFClruqteDXqSVpCMig"
         val str_start : String = "origin=" + startLocation.latitude + "," + startLocation.longitude
@@ -327,18 +393,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
             setMapLocation()
             mapJustLoaded = false
         }
-        Log.d("myLogger", "LOCATION CHANGED")
-        val sentPI: PendingIntent = PendingIntent.getBroadcast(
-            this,
-            0,
-            Intent("SMS_SENT"),
-            PendingIntent.FLAG_IMMUTABLE
-        )
         try {
             Log.d("myLogger", "TRY STATEMENT")
             val userLocation = LatLng(location.latitude, location.longitude)
-            if (!PolyUtil.isLocationOnPath(userLocation, currentPolyline!!.points, true, 100.0)){
+            if (!PolyUtil.isLocationOnPath(userLocation, currentPolyline!!.points, true, 150.0)){
                 if (!offRoute) {
+                    offRoute = true
                     val addresses: List<Address>?
                     val geocoder = Geocoder(this, Locale.getDefault())
                     addresses = geocoder.getFromLocation(
@@ -346,22 +406,25 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCallback
                         userLocation.longitude,
                         1
                     )
-                    NewDeviationSheet(sentPI, intent.extras?.getStringArrayList("Emergency Contacts"), destLocation, addresses,this).show(supportFragmentManager, "newDeviationTag")
+                    val sentPI: PendingIntent = PendingIntent.getBroadcast(
+                        this,
+                        0,
+                        Intent("SMS_SENT"),
+                        PendingIntent.FLAG_IMMUTABLE
+                    )
+                    NewDeviationSheet(sentPI, intent.extras?.getStringArrayList("Emergency Contacts"), currDest!!, addresses,this).show(supportFragmentManager, "newDeviationTag")
                 }
             } else {
-                Log.d("myLog", "ON THE PATH")
                 if (currDest != null) {
-                    val currLat:Double = String.format("%.2f", location.latitude).toDouble()
-                    val currLong:Double = String.format("%.2f", location.longitude).toDouble()
-                    val destLat:Double = String.format("%.2f", currDest!!.latitude).toDouble()
-                    val destLong:Double = String.format("%.2f", currDest!!.longitude).toDouble()
-                    Log.d("myLogger", "currLat $currLat")
-                    Log.d("myLogger", "currLong $currLong")
-                    Log.d("myLogger", "destLat $destLat")
-                    Log.d("myLogger", "destLong$destLong")
-
-                    if (currLat == destLat && currLong == destLong) {
+                    if (SphericalUtil.computeDistanceBetween(currDest,
+                            LatLng(location.latitude, location.longitude)) < 30) {
                         if (!routeComplete) {
+                            val sentPI: PendingIntent = PendingIntent.getBroadcast(
+                                this,
+                                0,
+                                Intent("SMS_SENT"),
+                                PendingIntent.FLAG_IMMUTABLE
+                            )
                             RouteCompleteSheet(sentPI, intent.extras?.getStringArrayList("Emergency Contacts"), this).show(supportFragmentManager, "newDeviationTag")
                         }
                     }

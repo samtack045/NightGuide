@@ -1,6 +1,7 @@
 package com.example.ng
 
 import android.app.PendingIntent
+import android.content.DialogInterface
 import android.location.Address
 import android.os.Bundle
 import android.os.CountDownTimer
@@ -31,7 +32,6 @@ class NewDeviationSheet(
         val dialog = super.onCreateDialog(savedInstanceState)
         dialog.setCancelable(false)
         dialog.setCanceledOnTouchOutside(false)
-        mapsActivity.offRoute = true
         timer = object : CountDownTimer(60_000, 1_000) {
             override fun onTick(remaining: Long) {
                 binding.countdownText.text = (remaining / 1000).toString()
@@ -45,10 +45,9 @@ class NewDeviationSheet(
                     Log.d("mylog", it)
                     SmsManager.getDefault().sendTextMessage(it, null, "I have gone off route, I am at $address", sentPI, null)
                 }
-                binding.countdownText.text = ""
-                binding.countdownMessage.text = "Your contacts have been messaged"
-                binding.butmessageContacts.visibility = View.INVISIBLE
-                binding.countdownUnits.visibility = View.INVISIBLE
+                timer.cancel()
+                binding.countdownUnits.text = "seconds"
+                timer.start()
             }
         }
     }
@@ -85,5 +84,11 @@ class NewDeviationSheet(
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         binding = FragmentNewDeviationSheetBinding.inflate(inflater, container, false)
         return binding.root
+    }
+
+    override fun onDismiss(dialog: DialogInterface) {
+        mapsActivity.setARoute(dest)
+        mapsActivity.offRoute = false
+        super.onDismiss(dialog)
     }
 }

@@ -107,7 +107,7 @@ class PointsParser(mContext: TaskLoadedCallback, directionMode: String) :
             var count = 0
             for (p in points) {
                 for (c in unsafeReports) {
-                    if (SphericalUtil.computeDistanceBetween(p, c) < 200) {
+                    if (SphericalUtil.computeDistanceBetween(p, c) < 100) {
                         count++
                         break
                     }
